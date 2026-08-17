@@ -1,3 +1,27 @@
+@font-face {
+  font-family: "ThaumMono";
+  src: url("../fonts/thaum-mono/ThaumMono-W80.ttf") format("truetype");
+  font-weight: 80;
+  font-display: swap;
+}
+@font-face {
+  font-family: "ThaumMono";
+  src: url("../fonts/thaum-mono/ThaumMono-W160.ttf") format("truetype");
+  font-weight: 160;
+  font-display: swap;
+}
+@font-face {
+  font-family: "ThaumMono";
+  src: url("../fonts/thaum-mono/ThaumMono-W320.ttf") format("truetype");
+  font-weight: 320;
+  font-display: swap;
+}
+@font-face {
+  font-family: "ThaumMono";
+  src: url("../fonts/thaum-mono/ThaumMono-W640.ttf") format("truetype");
+  font-weight: 640;
+  font-display: swap;
+}
 :root {
   --bg: #111;
   --fg: #eee;
@@ -9,7 +33,7 @@
 body {
   background: var(--bg);
   color: var(--fg);
-  font-family: system-ui, -apple-system, sans-serif;
+  font-family: "ThaumMono", system-ui, monospace;
   line-height: 1.5;
   min-height: 100vh;
   display: flex;
