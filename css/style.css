@@ -28,35 +28,80 @@
   --muted: #888;
   --accent: #e0b34e;
   --ph: #2a2a2a; /* placeholder */
+
+  /* typegrid: one grid for the whole site.
+     vertical columns align across header/main/footer;
+     horizontal rows are free between sections. */
+  --tg-columns: 12;
+  --tg-gutter: 2ch;
+  --tg-width: 76ch;   /* content width, mono-friendly */
+  --tg-pad: 2ch;      /* page padding, same everywhere */
+  --tg-line: 1.5;
+  --tg-ch: 0.6em;     /* real glyph width measured by js/components.js */
+  --tg-row: calc(var(--tg-size-1) * var(--tg-line)); /* one text line = one grid row */
+  /* type scale (ThaumMono weights: 160 / 320 / 640 / 800) */
+  --tg-size-0: 0.8rem;
+  --tg-size-1: 1rem;
+  --tg-size-2: 1.25rem;
+  --tg-size-3: 2rem;
+  --tg-size-4: 3rem;
+}
+/* shared shell: keeps columns aligned across the whole page */
+.tg-shell {
+  max-width: var(--tg-width);
+  margin: 0 auto;
+  padding: 0 var(--tg-pad);
+  width: 100%;
+}
+.tg-grid {
+  display: grid;
+  grid-template-columns: repeat(var(--tg-columns), 1fr);
+  gap: var(--tg-gutter);
+}
+.span-3 { grid-column: span 3; }
+.span-4 { grid-column: span 4; }
+.span-6 { grid-column: span 6; }
+.span-12 { grid-column: span 12; }
+/* ASCII art block: base size, one --tg-row per line, no wrap */
+.tg-art {
+  font-size: var(--tg-size-1);
+  line-height: var(--tg-line);
+  white-space: pre;
+  overflow-x: auto;
+  margin: 0;
+  color: var(--fg);
 }
 * { box-sizing: border-box; margin: 0; }
 body {
   background: var(--bg);
   color: var(--fg);
   font-family: "ThaumMono", system-ui, monospace;
-  line-height: 1.5;
+  font-weight: 320;
+  line-height: var(--tg-line);
   min-height: 100vh;
   display: flex;
   flex-direction: column;
 }
 header.site {
+  border-bottom: 1px solid #333;
+  padding: 1rem 0;
+}
+header.site .tg-shell {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 1rem 2rem;
-  border-bottom: 1px solid #333;
 }
-header.site .logo { font-weight: 700; letter-spacing: 0.05em; }
+header.site .logo { font-weight: 800; letter-spacing: 0.05em; }
 header.site nav a {
   color: var(--muted);
   text-decoration: none;
   margin-left: 1.25rem;
-  font-size: 0.95rem;
+  font-size: var(--tg-size-0);
 }
 header.site nav a:hover, header.site nav a.active { color: var(--accent); }
-main { flex: 1; padding: 2rem; max-width: 960px; margin: 0 auto; width: 100%; }
-h1 { font-size: 2rem; margin-bottom: 1rem; }
-h2 { font-size: 1.2rem; margin: 1.5rem 0 0.75rem; color: var(--muted); font-weight: 500; }
+main { flex: 1; padding: 2rem 0; }
+h1 { font-size: var(--tg-size-3); font-weight: 800; margin-bottom: 1rem; }
+h2 { font-size: var(--tg-size-2); margin: 1.5rem 0 0.75rem; color: var(--muted); font-weight: 640; }
 p { margin-bottom: 0.75rem; color: #ccc; }
 .placeholder {
   background: var(--ph);
@@ -66,15 +111,37 @@ p { margin-bottom: 0.75rem; color: #ccc; }
   align-items: center;
   justify-content: center;
   color: var(--muted);
-  font-size: 0.85rem;
+  font-size: var(--tg-size-0);
   margin-bottom: 1rem;
 }
-.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 1rem; }
+/* work cards ride the shared 12-column typegrid */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(var(--tg-columns), 1fr);
+  gap: var(--tg-gutter);
+}
+.grid > * { grid-column: span 6; }
 .grid .placeholder { min-height: 160px; margin-bottom: 0; }
+/* typegrid demo ruler */
+.tg-ruler > div {
+  min-height: 3ch;
+  background: var(--ph);
+  border: 1px solid #333;
+  color: var(--muted);
+  font-size: var(--tg-size-0);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.tg-note { color: var(--muted); font-size: var(--tg-size-0); margin-top: 0.5rem; }
 footer.site {
-  padding: 1.5rem 2rem;
   border-top: 1px solid #333;
   color: var(--muted);
-  font-size: 0.85rem;
+  font-size: var(--tg-size-0);
   text-align: center;
+  padding: 1.5rem 0;
+}
+@media (max-width: 640px) {
+  .grid > * { grid-column: span 12; }
+  .span-6 { grid-column: span 12; }
 }

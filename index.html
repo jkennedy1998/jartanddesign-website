@@ -8,7 +8,7 @@
 </head>
 <body>
   <header class="site"></header>
-  <main>
+  <main class="tg-shell">
     <h1>Jart &amp; Design</h1>
     <p>Illustration, design, and development. Work in progress.</p>
     <div class="placeholder" style="min-height:280px">hero placeholder</div>
@@ -19,6 +19,25 @@
       <a class="placeholder" style="text-decoration:none;color:inherit" href="development.html">development</a>
       <a class="placeholder" style="text-decoration:none;color:inherit" href="sketchbook.html">sketchbook</a>
     </div>
+    <h2>Typegrid</h2>
+    <div class="tg-grid tg-ruler">
+      <div>1</div><div>2</div><div>3</div><div>4</div><div>5</div><div>6</div>
+      <div>7</div><div>8</div><div>9</div><div>10</div><div>11</div><div>12</div>
+    </div>
+    <p class="tg-note">12 columns · 2ch gutters · 76ch width · row unit = 1 text line · columns align across header, main, footer · rows free between sections</p>
+    <h2>ASCII art on the grid</h2>
+    <div class="tg-grid">
+      <pre class="tg-art span-6">+------------------------+
+|  J A R T   &   D E S I N |
+|  illustration/design/dev|
++------------------------+</pre>
+      <pre class="tg-art span-6">  /\_/\   o7
+ ( ^.^)  jart
+  \._./   &amp; design
+   |  |  work in progress
+   d  b</pre>
+    </div>
+    <p class="tg-art" style="margin-top:1rem">each line above = exactly one grid row (1.5rem) at base size</p>
   </main>
   <footer class="site"></footer>
   <script src="js/components.js"></script>
