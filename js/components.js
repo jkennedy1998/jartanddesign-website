@@ -34,21 +34,7 @@ function renderFooter() {
   el.innerHTML = `<div class="tg-shell">&copy; ${new Date().getFullYear()} Jart &amp; Design</div>`;
 }
 
-// Measure the real ThaumMono glyph width at base size so ch-based
-// grid math (--tg-ch) matches what is actually rendered.
-function measureTypeGrid() {
-  const probe = document.createElement("span");
-  probe.style.cssText =
-    "position:absolute;visibility:hidden;white-space:pre;font-size:1rem;";
-  probe.textContent = "0000000000";
-  document.body.appendChild(probe);
-  const ch = probe.getBoundingClientRect().width / 10;
-  probe.remove();
-  document.documentElement.style.setProperty("--tg-ch", ch + "px");
-}
-
 document.addEventListener("DOMContentLoaded", () => {
-  measureTypeGrid();
   renderHeader();
   renderFooter();
 });
