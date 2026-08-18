@@ -50,7 +50,7 @@ body {
   flex-direction: column;
 }
 /* one size everywhere */
-h1, h2, p, a, nav, footer, .placeholder, .tg-note { font-size: inherit; }
+h1, h2, p, a, nav, footer, .placeholder { font-size: inherit; }
 /* shared shell: same width on every page, so chars align vertically site-wide */
 .tg-shell {
   max-width: var(--tg-width);
@@ -58,8 +58,7 @@ h1, h2, p, a, nav, footer, .placeholder, .tg-note { font-size: inherit; }
   padding: 0 var(--tg-pad);
   width: 100%;
 }
-/* ASCII art: same cell as all text, no wrap */
-.tg-art, pre {
+pre {
   white-space: pre;
   overflow-x: auto;
 }
@@ -105,7 +104,6 @@ p { margin-bottom: 0.75rem; color: #ccc; }
   gap: 1ch;
 }
 .grid .placeholder { min-height: 10ch; margin-bottom: 0; }
-.tg-note { color: var(--muted); margin-top: 0.5rem; }
 footer.site {
   border-top: 1px solid #333;
   color: var(--muted);
