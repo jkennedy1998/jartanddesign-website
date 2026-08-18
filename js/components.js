@@ -34,7 +34,35 @@ function renderFooter() {
   el.innerHTML = `<div class="tg-shell">&copy; ${new Date().getFullYear()} Jart &amp; Design</div>`;
 }
 
+// Hover video backgrounds for home buttons.
+// Each .home-btn[data-video] gets a full-screen, non-interactive video that
+// plays while hovered and pauses (reset to start) when the cursor leaves.
+function initHomeVideoBackgrounds() {
+  const buttons = document.querySelectorAll(".home-btn[data-video]");
+  if (!buttons.length) return;
+  buttons.forEach((btn) => {
+    const video = document.createElement("video");
+    video.src = btn.dataset.video;
+    video.muted = true;
+    video.loop = true;
+    video.playsInline = true;
+    video.preload = "metadata";
+    video.className = "home-bg-video";
+    document.body.appendChild(video);
+    btn.addEventListener("mouseenter", () => {
+      video.classList.add("is-playing");
+      video.play().catch(() => {});
+    });
+    btn.addEventListener("mouseleave", () => {
+      video.classList.remove("is-playing");
+      video.pause();
+      video.currentTime = 0;
+    });
+  });
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   renderHeader();
   renderFooter();
+  initHomeVideoBackgrounds();
 });

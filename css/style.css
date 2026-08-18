@@ -33,7 +33,7 @@
      characters align vertically across the whole site.
      hierarchy comes from weight (80/160/320/640), never size. */
   --tg-size: 16px;
-  --tg-line: 1.5;
+  --tg-line: 1;
   --tg-width: 80ch;
   --tg-pad: 2ch;
 }
@@ -97,6 +97,12 @@ p { margin-bottom: 0.75rem; color: #ccc; }
   color: var(--muted);
   margin-bottom: 1rem;
 }
+/* item rows: one row per item. rows are modules — each can have its own
+   setup (.row-text, .row-image, ...). big vertical gaps = space for content. */
+.rows { display: flex; flex-direction: column; gap: 10ch; }
+.row { width: 100%; }
+.row-text h2 { font-weight: 320; margin: 0 0 1ch; color: var(--muted); }
+.row-text p { font-weight: 160; margin-bottom: 0; }
 /* simple card layout (not the typegrid) */
 .grid {
   display: grid;
@@ -113,3 +119,46 @@ footer.site {
 @media (max-width: 640px) {
   .grid { grid-template-columns: 1fr; }
 }
+/* home: one full-screen section, title left, plain text buttons right */
+.home {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6ch;
+  padding: 0 4ch;
+  position: relative;
+  z-index: 1;
+}
+/* button hover video background: full-screen, behind content, non-interactive */
+.home-bg-video {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  object-fit: cover;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+.home-bg-video.is-playing { opacity: 1; }
+.home-title {
+  font-family: inherit;
+  font-weight: 640;
+}
+.home-sub { font-weight: 160; }
+.home-buttons {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 1ch;
+}
+.home-btn {
+  font-weight: 160;
+  color: inherit;
+  text-decoration: none;
+}
+.home-buttons:hover .home-btn { font-weight: 80; }
+.home-buttons:hover .home-btn:hover { font-weight: 320; }
+.home-buttons:hover .home-btn:active { font-weight: 640; }
