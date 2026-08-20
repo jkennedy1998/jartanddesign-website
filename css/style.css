@@ -23,7 +23,7 @@
   font-display: swap;
 }
 :root {
-  --bg: #111;
+  --bg: #e36325;
   --fg: #eee;
   --muted: #888;
   --accent: #e0b34e;
@@ -61,28 +61,48 @@ h1, h2, p, a, nav, footer, .placeholder { font-size: inherit; }
 pre {
   white-space: pre;
   overflow-x: auto;
+  font-family: inherit;
 }
 header.site {
-  border-bottom: 1px solid #333;
-  padding: 1rem 0;
+  background: #FEFFE5;
+  padding: 1.75rem 0;
 }
 header.site .tg-shell {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
 }
-header.site .logo {
-  font-weight: 640;
-  letter-spacing: 0.05em;
-  color: var(--fg);
+.site-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+  width: 100%;
+  white-space: nowrap;
+}
+header.site .site-nav-link,
+header.site .site-nav-link:visited {
+  color: #C4702B;
   text-decoration: none;
+  display: inline-block;
+  -webkit-text-fill-color: currentColor;
 }
-header.site nav a {
-  color: var(--muted);
-  text-decoration: none;
-  margin-left: 1.25rem;
+header.site .site-nav-link.active,
+header.site .site-nav-link.active:visited {
+  color: #E36325;
 }
-header.site nav a:hover, header.site nav a.active { color: var(--accent); }
+header.site .site-nav-link.is-hovered,
+header.site .site-nav-link.is-hovered:visited {
+  color: #120A1A;
+}
+header.site.is-hovering .site-nav-link.active:not(.is-hovered),
+header.site.is-hovering .site-nav-link.active:not(.is-hovered):visited {
+  color: #C4702B;
+}
+header.site.is-hovering .site-nav-link:not(.is-hovered):not(.active),
+header.site.is-hovering .site-nav-link:not(.is-hovered):not(.active):visited {
+  color: #AC9D7C;
+}
 main { flex: 1; padding: 2rem 0; }
 h1 { font-weight: 640; margin-bottom: 1rem; }
 h2 { font-weight: 640; margin: 1.5rem 0 0.75rem; color: var(--muted); }
@@ -118,6 +138,10 @@ footer.site {
 }
 @media (max-width: 640px) {
   .grid { grid-template-columns: 1fr; }
+
+  .site-nav {
+    gap: 0.8rem;
+  }
 }
 /* home: one full-screen section, title left, plain text buttons right */
 .home {
@@ -140,25 +164,78 @@ footer.site {
   z-index: 0;
   pointer-events: none;
   opacity: 0;
-  transition: opacity 0.25s ease;
+  transition: opacity var(--home-video-fade-ms, 1400ms) ease;
 }
 .home-bg-video.is-playing { opacity: 1; }
-.home-title {
-  font-family: inherit;
-  font-weight: 640;
+.home-mark {
+  display: flex;
+  flex-direction: column;
+  gap: 1ch;
 }
-.home-sub { font-weight: 160; }
+.home-logo {
+  font-family: inherit;
+}
+.home-mark pre {
+  margin: 0;
+  font-family: inherit;
+}
+.home-sub {
+  color: var(--fg);
+  font-family: inherit;
+}
 .home-buttons {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
   gap: 1ch;
 }
-.home-btn {
-  font-weight: 160;
+.home-dissolve,
+.site-dissolve {
+  position: relative;
+  display: inline-block;
   color: inherit;
+}
+.home-btn {
+  min-height: 1em;
   text-decoration: none;
 }
-.home-buttons:hover .home-btn { font-weight: 80; }
-.home-buttons:hover .home-btn:hover { font-weight: 320; }
-.home-buttons:hover .home-btn:active { font-weight: 640; }
+.home-dissolve-text {
+  visibility: hidden;
+  white-space: pre;
+}
+.home-dissolve-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .site-dissolve {
+    transition: font-weight 140ms ease;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home-dissolve-text {
+    visibility: visible;
+  }
+  .home-dissolve-canvas {
+    display: none;
+  }
+
+  .home[data-home-state="idle"] .home-logo { font-weight: 640; }
+  .home[data-home-state="idle"] .home-sub,
+  .home[data-home-state="idle"] .home-btn { font-weight: 160; }
+
+  .home[data-home-state="hover"] .home-logo { font-weight: 160; }
+  .home[data-home-state="hover"] .home-sub,
+  .home[data-home-state="hover"] .home-btn { font-weight: 80; }
+  .home[data-home-state="hover"] .home-btn.is-active { font-weight: 320; }
+
+  .home[data-home-state="press"] .home-logo,
+  .home[data-home-state="press"] .home-sub,
+  .home[data-home-state="press"] .home-btn { font-weight: 80; }
+  .home[data-home-state="press"] .home-btn.is-active { font-weight: 640; }
+}
