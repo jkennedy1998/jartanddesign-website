@@ -12,5 +12,5 @@ single-media
 - title: 120a1a
 - subtitle: 7c8c3a
 - description: 5a5f28
-- background: f8ef9a
+- background: dee78a
 - brightness: light

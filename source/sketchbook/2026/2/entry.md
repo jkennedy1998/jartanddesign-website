@@ -8,7 +8,14 @@ pencil, pen, and digital
 a sketch of a castle for a setting within my tabletop game for THAUMWORLD, LAND OF SNOW AND FOG
 ## preset
 carousel-media
-## colors
+## item 1 colors
+- title: e36325
+- subtitle: a9c448
+- description: 8c9d4f
+- background: ffffff
+- brightness: light
+
+## item 2 colors
 - title: e36325
 - subtitle: a9c448
 - description: 8c9d4f

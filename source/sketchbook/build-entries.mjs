@@ -16,6 +16,52 @@ const orderFiles = (files) => files.sort((a, b) => {
   return aIndex - bIndex || a.localeCompare(b);
 });
 
+function parseEntryMarkdown(sourceText) {
+  const lines = sourceText.replace(/\r\n?/g, "\n").split("\n");
+  const entry = {};
+  let section = null;
+  for (const line of lines) {
+    const heading = line.match(/^##\s+(.+)$/);
+    if (heading) {
+      section = heading[1].trim().toLowerCase();
+      if (!(section in entry)) entry[section] = "";
+      continue;
+    }
+    if (!section) continue;
+    entry[section] = entry[section] ? `${entry[section]}\n${line}` : line;
+  }
+  return Object.fromEntries(Object.entries(entry).map(([key, value]) => [key, value.trim()]));
+}
+
+function parseColorConfig(sourceText) {
+  const config = {};
+  if (!sourceText) return config;
+  for (const line of sourceText.split("\n")) {
+    const match = line.match(/^\s*[-*]\s*([^:]+):\s*(.*?)\s*$/);
+    if (!match) continue;
+    config[match[1].trim().toLowerCase()] = match[2].trim();
+  }
+  return config;
+}
+
+function assertCarouselItemColors(sourceText, mediaFiles, entryPath) {
+  const entry = parseEntryMarkdown(sourceText);
+  if ((entry.preset || "").trim().toLowerCase() !== "carousel-media") return;
+  if (entry.colors) {
+    throw new Error(`${entryPath}: carousel-media must not include ## colors; use only ## item N colors sections`);
+  }
+  const requiredKeys = ["title", "subtitle", "description", "background", "brightness"];
+  const imageCount = mediaFiles.filter((name) => /^image-/i.test(name)).length;
+  for (let itemIndex = 0; itemIndex < imageCount; itemIndex += 1) {
+    const sectionName = `item ${itemIndex + 1} colors`;
+    const colorConfig = parseColorConfig(entry[sectionName] || "");
+    const missingKeys = requiredKeys.filter((key) => !colorConfig[key]);
+    if (missingKeys.length) {
+      throw new Error(`${entryPath}: carousel-media requires ## ${sectionName} with ${requiredKeys.join(", ")}`);
+    }
+  }
+}
+
 const entries = [];
 for (const yearDir of years) {
   if (!yearDir.isDirectory() || !numericName.test(yearDir.name)) continue;
@@ -35,6 +81,7 @@ for (const yearDir of years) {
     }
     const folderFiles = await readdir(folderPath);
     const mediaFiles = orderFiles(folderFiles.filter((name) => mediaName.test(name)));
+    assertCarouselItemColors(sourceText, mediaFiles, entryPath);
     entries.push({
       order,
       year: Number(yearDir.name),
@@ -59,6 +106,6 @@ for (const entry of entries) {
 }
 
 const escapeTemplate = (text) => text.replace(/`/g, '\\`').replace(/\$\{/g, '\\${');
-const content = `window.PORTFOLIO_PAGE_SOURCE = {\n  sketchbook: [\n${dedupedEntries.map((entry) => `    {\n      entry: ${JSON.stringify(entry.entry)},\n      mediaDir: ${JSON.stringify(entry.mediaDir)},\n      mediaFiles: ${JSON.stringify(entry.mediaFiles)},\n      sourceText: \`${escapeTemplate(entry.sourceText)}\`\n    }`).join(',\n')}\n  ]\n};\n`;
+const content = `window.PORTFOLIO_PAGE_SOURCE = {\n  sketchbook: [\n${dedupedEntries.map((entry) => `    {\n      mediaDir: ${JSON.stringify(entry.mediaDir)},\n      mediaFiles: ${JSON.stringify(entry.mediaFiles)},\n      sourceText: \`${escapeTemplate(entry.sourceText)}\`\n    }`).join(',\n')}\n  ]\n};\n`;
 
 await writeFile(path.join(rootDir, 'entries.js'), content);

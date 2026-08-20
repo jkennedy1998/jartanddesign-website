@@ -1,16 +1,16 @@
 # entry-data
 
 ## title
-Animal Well
+leafboat
 ## subtitle
-Photoshop
+blender, photoshop
 ## description
-I made this illustration after playing Animal Well because the game left such a strong impression on me visually and tonally. I wanted to sit with that feeling and build a piece around its eerie charm, sharp contrast, and sense of mystery. It was especially surreal to later see it travel through online spaces and then learn that Billy Basso, the creator of Animal Well, bought it as a print after coming across it there.
+this was part of a stretch of experimental workflow work after college while i was trying to get a better handle on mixed media between 3d modeling and lighting and 2d illustration. leafboat came out of that phase as a small piece where i could push atmosphere, texture, and painterly treatment without giving up the dimensional base.
 ## preset
 single-media
 ## colors
-- title: 120a1a
-- subtitle: 5aa9f8
-- description: 4c4567
-- background: ffffff
-- brightness: light
+- title: fdfffb
+- subtitle: 778989
+- description: bf8c78
+- background: 00000f
+- brightness: dark

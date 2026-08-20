@@ -1,16 +1,30 @@
 # entry-data
 
 ## title
-Chainsaw in the Bag
+shading with noise
 ## subtitle
-after effects, photoshop, watercolor pencils on paper
+blender, after effects, photoshop
 ## description
-This piece came out of combining a hand-made traditional drawing base with digital editing and motion treatment. I liked the push and pull between the softness of watercolor pencil texture on paper and the sharper timing and compositing control I could get once it moved into After Effects and Photoshop.
+this group came out of developing procedural shader setups in blender that could produce stylized value banding and then break that banding apart with texture. i was looking for a controlled way to make values step across a surface or image without feeling flat. these three tests orbit fallout 76, metroid prime 3, and stardew valley while pushing that same shader thinking in different directions.
 ## preset
-single-media
-## colors
-- title: feffe5
-- subtitle: f8c6b2
-- description: fff3e8
-- background: 203a73
+carousel-media
+## item 1 colors
+- title: 3e1a0c
+- subtitle: e2e990
+- description: fff3b3
+- background: db3d29
 - brightness: dark
+
+## item 2 colors
+- title: e2e990
+- subtitle: e36325
+- description: a9c448
+- background: 000500
+- brightness: dark
+
+## item 3 colors
+- title: e5598d
+- subtitle: e06900
+- description: 4f3b9d
+- background: ffffff
+- brightness: light

@@ -1,7 +1,6 @@
 window.PORTFOLIO_PAGE_SOURCE = {
   sketchbook: [
     {
-      entry: "source/sketchbook/2026/1/entry.md",
       mediaDir: "source/sketchbook/2026/1/",
       mediaFiles: {"images":[],"videos":["source/sketchbook/2026/1/video-1.mp4"]},
       sourceText: `# entry-data
@@ -22,7 +21,6 @@ video-media
 - brightness: dark`
     },
     {
-      entry: "source/sketchbook/2026/2/entry.md",
       mediaDir: "source/sketchbook/2026/2/",
       mediaFiles: {"images":["source/sketchbook/2026/2/image-1.jpg","source/sketchbook/2026/2/image-2.jpg"],"videos":[]},
       sourceText: `# entry-data
@@ -35,7 +33,14 @@ pencil, pen, and digital
 a sketch of a castle for a setting within my tabletop game for THAUMWORLD, LAND OF SNOW AND FOG
 ## preset
 carousel-media
-## colors
+## item 1 colors
+- title: e36325
+- subtitle: a9c448
+- description: 8c9d4f
+- background: ffffff
+- brightness: light
+
+## item 2 colors
 - title: e36325
 - subtitle: a9c448
 - description: 8c9d4f
@@ -44,7 +49,6 @@ carousel-media
 `
     },
     {
-      entry: "source/sketchbook/2026/3/entry.md",
       mediaDir: "source/sketchbook/2026/3/",
       mediaFiles: {"images":["source/sketchbook/2026/3/image-1.gif"],"videos":[]},
       sourceText: `# entry-data
@@ -61,12 +65,11 @@ single-media
 - title: 120a1a
 - subtitle: 7c8c3a
 - description: 5a5f28
-- background: f8ef9a
+- background: dee78a
 - brightness: light
 `
     },
     {
-      entry: "source/sketchbook/2026/4/entry.md",
       mediaDir: "source/sketchbook/2026/4/",
       mediaFiles: {"images":["source/sketchbook/2026/4/image-1.jpg"],"videos":[]},
       sourceText: `# entry-data
@@ -82,13 +85,12 @@ single-media
 ## colors
 - title: 6a2dd8
 - subtitle: e36325
-- description: 6a2dd8
-- background: ffffff
+- description: 479d35
+- background: b988d4
 - brightness: light
 `
     },
     {
-      entry: "source/sketchbook/2026/5/entry.md",
       mediaDir: "source/sketchbook/2026/5/",
       mediaFiles: {"images":[],"videos":["source/sketchbook/2026/5/video-1.mp4"]},
       sourceText: `# entry-data
@@ -102,11 +104,11 @@ Made in 2025, this pixel waveform demo was part of a workflow experiment around 
 ## preset
 video-media
 ## colors
-- title: feffe5
-- subtitle: a9c448
-- description: fff3b3
-- background: 120a1a
-- brightness: dark
+- title: 434718
+- subtitle: e46425
+- description: 547a27
+- background: e2e890
+- brightness: light
 `
     }
   ]

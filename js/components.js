@@ -724,18 +724,12 @@ function mixHexColors(base, target, amount = 0.5) {
   });
 }
 
-function buildPortfolioSlice(slice, index) {
-  const section = document.createElement("section");
-  section.className = "portfolio-slice";
-  section.dataset.sliceIndex = String(index);
-
-  const tone = slice.tone === "dark" ? "dark" : "light";
-  section.dataset.sliceTone = tone;
-  const currentBackgroundColor = slice.backgroundColor || "#222";
-  const currentTitleColor = slice.titleColor || slice.textColor || "#FEFFE5";
-  const currentSubtitleColor = slice.subtitleColor || slice.textColor || "#FEFFE5";
-  const currentButtonColor = slice.buttonColor || slice.textColor || "#FEFFE5";
-  const currentDescColor = slice.descColor || slice.textColor || "#FEFFE5";
+function buildSlicePalette(colors, tone) {
+  const currentBackgroundColor = colors.backgroundColor || "#222";
+  const currentTitleColor = colors.titleColor || colors.textColor || "#FEFFE5";
+  const currentSubtitleColor = colors.subtitleColor || colors.textColor || "#FEFFE5";
+  const currentButtonColor = colors.buttonColor || colors.textColor || "#FEFFE5";
+  const currentDescColor = colors.descColor || colors.textColor || "#FEFFE5";
   const inactive = tone === "dark"
     ? {
         background: mixHexColors(currentBackgroundColor, "#16110E", 0.7),
@@ -754,22 +748,46 @@ function buildPortfolioSlice(slice, index) {
         overlay: mixHexColors(currentBackgroundColor, "#FEFFE5", 0.88),
       };
 
-  section.style.setProperty("--slice-bg-current", currentBackgroundColor);
-  section.style.setProperty("--slice-background", currentBackgroundColor);
-  section.style.setProperty("--slice-bg-inactive", inactive.background);
-  section.style.setProperty("--slice-overlay-color", inactive.overlay);
-  section.style.setProperty("--slice-title-color-active", currentTitleColor);
-  section.style.setProperty("--slice-subtitle-color-active", currentSubtitleColor);
-  section.style.setProperty("--slice-button-color-active", currentButtonColor);
-  section.style.setProperty("--slice-desc-color-active", currentDescColor);
-  section.style.setProperty("--slice-title-color-inactive", inactive.title);
-  section.style.setProperty("--slice-subtitle-color-inactive", inactive.subtitle);
-  section.style.setProperty("--slice-button-color-inactive", inactive.button);
-  section.style.setProperty("--slice-desc-color-inactive", inactive.desc);
-  section.style.setProperty("--slice-title-color", currentTitleColor);
-  section.style.setProperty("--slice-subtitle-color", currentSubtitleColor);
-  section.style.setProperty("--slice-button-color", currentButtonColor);
-  section.style.setProperty("--slice-desc-color", currentDescColor);
+  return {
+    currentBackgroundColor,
+    currentTitleColor,
+    currentSubtitleColor,
+    currentButtonColor,
+    currentDescColor,
+    inactive,
+  };
+}
+
+function applySlicePalette(section, colors, tone) {
+  const palette = buildSlicePalette(colors, tone);
+  section.style.setProperty("--slice-bg-current", palette.currentBackgroundColor);
+  section.style.setProperty("--slice-bg-inactive", palette.inactive.background);
+  section.style.setProperty("--slice-overlay-color", palette.inactive.overlay);
+  section.style.setProperty("--slice-title-color-active", palette.currentTitleColor);
+  section.style.setProperty("--slice-subtitle-color-active", palette.currentSubtitleColor);
+  section.style.setProperty("--slice-button-color-active", palette.currentButtonColor);
+  section.style.setProperty("--slice-desc-color-active", palette.currentDescColor);
+  section.style.setProperty("--slice-title-color-inactive", palette.inactive.title);
+  section.style.setProperty("--slice-subtitle-color-inactive", palette.inactive.subtitle);
+  section.style.setProperty("--slice-button-color-inactive", palette.inactive.button);
+  section.style.setProperty("--slice-desc-color-inactive", palette.inactive.desc);
+
+  const isActive = section.classList.contains("is-active");
+  section.style.setProperty("--slice-background", isActive ? palette.currentBackgroundColor : palette.inactive.background);
+  section.style.setProperty("--slice-title-color", isActive ? palette.currentTitleColor : palette.inactive.title);
+  section.style.setProperty("--slice-subtitle-color", isActive ? palette.currentSubtitleColor : palette.inactive.subtitle);
+  section.style.setProperty("--slice-button-color", isActive ? palette.currentButtonColor : palette.inactive.button);
+  section.style.setProperty("--slice-desc-color", isActive ? palette.currentDescColor : palette.inactive.desc);
+}
+
+function buildPortfolioSlice(slice, index) {
+  const section = document.createElement("section");
+  section.className = "portfolio-slice";
+  section.dataset.sliceIndex = String(index);
+
+  const tone = slice.tone === "dark" ? "dark" : "light";
+  section.dataset.sliceTone = tone;
+  applySlicePalette(section, slice, tone);
 
   const inner = document.createElement("div");
   inner.className = "portfolio-slice-inner";
@@ -968,6 +986,7 @@ function buildPortfolioSlice(slice, index) {
     inner.append(mediaWrap);
     appendStandardCopy();
   } else if (slice.type === "carousel-media") {
+    section.classList.add("portfolio-carousel-slice");
     const controls = document.createElement("div");
     controls.className = "portfolio-carousel-controls";
     const left = document.createElement("button");
@@ -993,15 +1012,22 @@ function buildPortfolioSlice(slice, index) {
     mediaWrap.className = "portfolio-slice-media-wrap portfolio-carousel-media-wrap";
     const stage = document.createElement("div");
     stage.className = "portfolio-carousel-stage";
-    const frontImage = document.createElement("img");
-    frontImage.className = "portfolio-slice-media portfolio-carousel-image is-current";
-    const backImage = document.createElement("img");
-    backImage.className = "portfolio-slice-media portfolio-carousel-image";
+    const createCarouselLayer = (className = "portfolio-carousel-image") => {
+      const layer = document.createElement("div");
+      layer.className = className;
+      const image = document.createElement("img");
+      image.className = "portfolio-slice-media portfolio-carousel-image-media";
+      layer.append(image);
+      layer.__image = image;
+      return layer;
+    };
+    const frontImage = createCarouselLayer("portfolio-carousel-image is-current");
+    const backImage = createCarouselLayer("portfolio-carousel-image");
     stage.append(frontImage, backImage);
     mediaWrap.append(stage);
 
     const items = Array.isArray(slice.media?.items) ? slice.media.items : [];
-    const state = { activeIndex: 0, currentLayer: frontImage, nextLayer: backImage, isAnimating: false };
+    const state = { activeIndex: 0, currentLayer: frontImage, nextLayer: backImage, isAnimating: false, minAspectRatio: Infinity, autoAdvanceTimer: null };
     const indexButtons = items.map((item, itemIndex) => {
       const button = document.createElement("button");
       button.type = "button";
@@ -1009,7 +1035,10 @@ function buildPortfolioSlice(slice, index) {
       button.dataset.weightIdle = "80";
       button.dataset.weightHover = "160";
       button.dataset.weightPress = "320";
-      button.addEventListener("click", () => goToIndex(itemIndex, itemIndex > state.activeIndex ? "right" : "left"));
+      button.addEventListener("click", () => {
+        noteInteraction();
+        goToIndex(itemIndex, itemIndex > state.activeIndex ? "right" : "left");
+      });
       indices.append(button);
       return button;
     });
@@ -1018,10 +1047,57 @@ function buildPortfolioSlice(slice, index) {
       ? `┏━┓\n┃${itemIndex + 1}┃\n┗━┛`
       : "┏━┓\n┃ ┃\n┗━┛";
 
-    const setImageContent = (image, item, itemIndex) => {
-      if (!image || !item) return;
-      image.src = item.src || "";
-      image.alt = item.alt || `${slice.title || "carousel image"} ${itemIndex + 1}`;
+    const getItemFrame = (item, availableWidth = (mediaWrap.clientWidth || inner.clientWidth || 0)) => {
+      const aspectRatio = Number(item?.aspectRatio);
+      if (!availableWidth || !Number.isFinite(state.minAspectRatio) || !Number.isFinite(aspectRatio) || aspectRatio <= 0) return null;
+      const height = Math.max(1, Math.round(availableWidth * state.minAspectRatio));
+      const width = Math.min(availableWidth, Math.max(1, Math.round(height / aspectRatio)));
+      return { width, height };
+    };
+
+    const applyImageFrame = (layer) => {
+      const frame = getItemFrame(layer?.__carouselItem);
+      if (!layer || !frame) return;
+      layer.style.width = `${frame.width}px`;
+      layer.style.height = `${frame.height}px`;
+    };
+
+    const setImageContent = (layer, item, itemIndex) => {
+      if (!layer || !item) return;
+      layer.__image.src = item.src || "";
+      layer.__image.alt = item.alt || `${slice.title || "carousel image"} ${itemIndex + 1}`;
+      layer.__carouselItem = item;
+      const layerPalette = buildSlicePalette(item.colors || slice, item.tone || tone);
+      layer.style.setProperty("--carousel-layer-background", layerPalette.inactive.background);
+      applyImageFrame(layer);
+    };
+
+    const syncStageSize = (item = items[state.activeIndex], secondaryItem = null) => {
+      const primaryFrame = getItemFrame(item);
+      const secondaryFrame = getItemFrame(secondaryItem);
+      const height = primaryFrame?.height || secondaryFrame?.height;
+      const width = Math.max(primaryFrame?.width || 0, secondaryFrame?.width || 0);
+      if (!height || !width) return;
+      stage.style.height = `${height}px`;
+      stage.style.width = `${width}px`;
+      applyImageFrame(state.currentLayer);
+      applyImageFrame(state.nextLayer);
+    };
+
+    const noteItemSize = (item) => {
+      const aspectRatio = Number(item?.aspectRatio);
+      if (!Number.isFinite(aspectRatio) || aspectRatio <= 0) return;
+      if (aspectRatio < state.minAspectRatio) state.minAspectRatio = aspectRatio;
+      syncStageSize(items[state.activeIndex], state.isAnimating ? state.currentLayer.__carouselItem : null);
+    };
+
+    const emitAppearanceChange = () => {
+      section.dispatchEvent(new CustomEvent("portfolio:slice-appearance", { bubbles: true }));
+    };
+
+    const applyCarouselItemAppearance = (item) => {
+      applySlicePalette(section, item?.colors || slice, item?.tone || tone);
+      emitAppearanceChange();
     };
 
     const syncCarouselButtons = () => {
@@ -1032,28 +1108,46 @@ function buildPortfolioSlice(slice, index) {
       });
     };
 
+    const scheduleAutoAdvance = () => {
+      if (state.autoAdvanceTimer) window.clearTimeout(state.autoAdvanceTimer);
+      if (items.length < 2) return;
+      state.autoAdvanceTimer = window.setTimeout(() => {
+        goToIndex((state.activeIndex + 1) % items.length, "right");
+        scheduleAutoAdvance();
+      }, 60000);
+    };
+
+    const noteInteraction = () => {
+      scheduleAutoAdvance();
+    };
+
     const finishTransition = () => {
       const previousCurrent = state.currentLayer;
       const incomingCurrent = state.nextLayer;
-      previousCurrent.className = "portfolio-slice-media portfolio-carousel-image";
-      incomingCurrent.className = "portfolio-slice-media portfolio-carousel-image is-current";
+      previousCurrent.className = "portfolio-carousel-image";
+      incomingCurrent.className = "portfolio-carousel-image is-current";
       state.currentLayer = incomingCurrent;
       state.nextLayer = previousCurrent;
-      stage.style.height = "";
       state.isAnimating = false;
+      previousCurrent.__carouselItem = null;
+      previousCurrent.style.removeProperty("--carousel-layer-background");
+      syncStageSize(items[state.activeIndex]);
     };
 
     const goToIndex = (nextIndex, explicitDirection = null) => {
       if (!items.length || nextIndex === state.activeIndex || state.isAnimating) return;
       const previousIndex = state.activeIndex;
       const direction = explicitDirection || (nextIndex > previousIndex ? "right" : "left");
+      const outgoing = items[previousIndex];
       const incoming = items[nextIndex];
       setImageContent(state.nextLayer, incoming, nextIndex);
-      stage.style.height = `${state.currentLayer.offsetHeight}px`;
-      state.currentLayer.className = `portfolio-slice-media portfolio-carousel-image is-current is-leaving to-${direction}`;
-      state.nextLayer.className = `portfolio-slice-media portfolio-carousel-image is-entering from-${direction}`;
+      state.currentLayer.__carouselItem = outgoing;
+      state.currentLayer.className = `portfolio-carousel-image is-current is-leaving to-${direction}`;
+      state.nextLayer.className = `portfolio-carousel-image is-entering from-${direction}`;
       state.activeIndex = nextIndex;
       state.isAnimating = true;
+      applyCarouselItemAppearance(incoming);
+      syncStageSize(incoming, outgoing);
       syncCarouselButtons();
       requestAnimationFrame(() => {
         state.currentLayer.classList.add("is-animating");
@@ -1064,18 +1158,49 @@ function buildPortfolioSlice(slice, index) {
 
     left.addEventListener("click", () => {
       if (!items.length) return;
+      noteInteraction();
       goToIndex((state.activeIndex - 1 + items.length) % items.length, "left");
     });
     right.addEventListener("click", () => {
       if (!items.length) return;
+      noteInteraction();
       goToIndex((state.activeIndex + 1) % items.length, "right");
     });
 
     controls.append(left, indices, right);
     inner.append(mediaWrap, controls);
     appendStandardCopy();
-    if (items[0]) setImageContent(state.currentLayer, items[0], 0);
+
+    [section, mediaWrap, controls, left, right, ...indexButtons].forEach((element) => {
+      element.addEventListener("pointerenter", noteInteraction);
+      element.addEventListener("focusin", noteInteraction);
+    });
+
+    items.forEach((item) => {
+      if (!item?.src) return;
+      const probe = new Image();
+      probe.addEventListener("load", () => {
+        if (!probe.naturalWidth || !probe.naturalHeight) return;
+        item.aspectRatio = probe.naturalHeight / probe.naturalWidth;
+        noteItemSize(item);
+      }, { once: true });
+      probe.src = item.src;
+    });
+
+    if (items[0]) {
+      setImageContent(state.currentLayer, items[0], 0);
+      applyCarouselItemAppearance(items[0]);
+      noteItemSize(items[0]);
+    }
     syncCarouselButtons();
+    if (typeof ResizeObserver === "function") {
+      const observer = new ResizeObserver(() => syncStageSize(items[state.activeIndex]));
+      observer.observe(mediaWrap);
+    } else {
+      window.addEventListener("resize", () => syncStageSize(items[state.activeIndex]));
+    }
+    requestAnimationFrame(() => syncStageSize(items[state.activeIndex]));
+    scheduleAutoAdvance();
   } else if (slice.type === "custom" && slice.html) {
     const custom = document.createElement("div");
     custom.innerHTML = slice.html;
@@ -1132,14 +1257,13 @@ function normalizeHexColor(value, fallback) {
   return fallback;
 }
 
-function resolveSketchbookSourceSlice(entry, source) {
-  const preset = (entry.preset || "single-media").trim().toLowerCase();
-  const mediaDir = source.mediaDir || source.entry.replace(/[^/]+$/, "");
-  const mediaFiles = source.mediaFiles || {};
-  const colorConfig = parseSketchbookColorConfig(entry.colors);
+function resolveEntryTone(colorConfig, preset) {
   const brightness = (colorConfig.brightness || "").trim().toLowerCase();
-  const tone = brightness === "dark" ? "dark" : brightness === "light" ? "light" : (preset === "video-media" ? "dark" : "light");
-  const defaultColors = tone === "dark"
+  return brightness === "dark" ? "dark" : brightness === "light" ? "light" : (preset === "video-media" ? "dark" : "light");
+}
+
+function resolveDefaultSliceColors(tone) {
+  return tone === "dark"
     ? {
         background: "#304021",
         title: "#FEFFE5",
@@ -1152,11 +1276,9 @@ function resolveSketchbookSourceSlice(entry, source) {
         subtitle: "#120A1A",
         description: "#120A1A",
       };
-  const shared = {
-    title: entry.title || "untitled",
-    subtitle: entry.subtitle || "",
-    description: entry.description || "",
-  };
+}
+
+function resolveSliceColors(colorConfig, defaultColors) {
   const resolvedColors = {
     backgroundColor: normalizeHexColor(colorConfig.background, defaultColors.background),
     titleColor: normalizeHexColor(colorConfig.title, defaultColors.title),
@@ -1164,6 +1286,37 @@ function resolveSketchbookSourceSlice(entry, source) {
     descColor: normalizeHexColor(colorConfig.description, defaultColors.description),
   };
   resolvedColors.buttonColor = resolvedColors.descColor;
+  return resolvedColors;
+}
+
+function collectCarouselItemColorSections(entry, preset) {
+  const sections = new Map();
+  Object.entries(entry).forEach(([key, value]) => {
+    const match = key.match(/^item\s+(\d+)\s+colors$/i);
+    if (!match) return;
+    const colorConfig = parseSketchbookColorConfig(value);
+    const tone = resolveEntryTone(colorConfig, preset);
+    sections.set(Number(match[1]) - 1, {
+      tone,
+      colors: resolveSliceColors(colorConfig, resolveDefaultSliceColors(tone)),
+    });
+  });
+  return sections;
+}
+
+function resolveSketchbookSourceSlice(entry, source) {
+  const preset = (entry.preset || "single-media").trim().toLowerCase();
+  const mediaDir = source.mediaDir || (source.entry ? source.entry.replace(/[^/]+$/, "") : "");
+  const mediaFiles = source.mediaFiles || {};
+  const colorConfig = parseSketchbookColorConfig(entry.colors);
+  const tone = resolveEntryTone(colorConfig, preset);
+  const defaultColors = resolveDefaultSliceColors(tone);
+  const shared = {
+    title: entry.title || "untitled",
+    subtitle: entry.subtitle || "",
+    description: entry.description || "",
+  };
+  const resolvedColors = resolveSliceColors(colorConfig, defaultColors);
 
   if (preset === "video-media") {
     return {
@@ -1179,16 +1332,23 @@ function resolveSketchbookSourceSlice(entry, source) {
   }
 
   if (preset === "carousel-media") {
+    const itemColorSections = collectCarouselItemColorSections(entry, preset);
+    const firstItemAppearance = itemColorSections.get(0) || { tone: "light", colors: resolveSliceColors({}, resolveDefaultSliceColors("light")) };
     return {
       type: "carousel-media",
-      tone,
-      ...resolvedColors,
+      tone: firstItemAppearance.tone,
+      ...firstItemAppearance.colors,
       media: {
         type: "carousel",
-        items: (mediaFiles.images || []).map((src, itemIndex) => ({
-          src,
-          alt: `${entry.title || "sketchbook image"} ${itemIndex + 1}`,
-        })),
+        items: (mediaFiles.images || []).map((src, itemIndex) => {
+          const itemAppearance = itemColorSections.get(itemIndex) || firstItemAppearance;
+          return {
+            src,
+            alt: `${entry.title || "sketchbook image"} ${itemIndex + 1}`,
+            colors: itemAppearance.colors,
+            tone: itemAppearance.tone,
+          };
+        }),
       },
       ...shared,
     };
@@ -1211,23 +1371,12 @@ async function loadPortfolioSourceSlices(pageKey) {
   const sources = window.PORTFOLIO_PAGE_SOURCE?.[pageKey];
   if (!Array.isArray(sources) || !sources.length) return null;
 
-  const slices = await Promise.all(sources.map(async (source) => {
-    const resolved = typeof source === "string" ? { entry: source } : source;
-    if (!resolved) return null;
-
-    let sourceText = "";
-    if (resolved.entry) {
-      try {
-        const response = await fetch(resolved.entry, { cache: "no-store" });
-        if (response.ok) sourceText = await response.text();
-      } catch {}
-    }
-    if (!sourceText) sourceText = resolved.sourceText || "";
-    if (!sourceText) return null;
-
-    const entry = parseSketchbookEntryMarkdown(sourceText);
+  const slices = sources.map((source) => {
+    const resolved = typeof source === "string" ? { sourceText: source } : source;
+    if (!resolved?.sourceText) return null;
+    const entry = parseSketchbookEntryMarkdown(resolved.sourceText);
     return resolveSketchbookSourceSlice(entry, resolved);
-  }));
+  });
 
   return slices.filter(Boolean);
 }
@@ -1418,6 +1567,10 @@ async function initPortfolioPage() {
       if (hoveredToggle === button) hoveredToggle = null;
       sync();
     });
+  });
+
+  mount.addEventListener("portfolio:slice-appearance", () => {
+    sync();
   });
 
   window.addEventListener("scroll", () => {

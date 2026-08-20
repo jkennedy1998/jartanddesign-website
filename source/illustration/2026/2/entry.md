@@ -10,7 +10,7 @@ this was largely a technical experiment to develop a fire shader i could reuse a
 single-media
 ## colors
 - title: feffe5
-- subtitle: ffc62f
-- description: fff3b3
-- background: 120a1a
+- subtitle: e36325
+- description: ffc62f
+- background: 000000
 - brightness: dark

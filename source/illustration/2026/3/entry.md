@@ -1,16 +1,16 @@
 # entry-data
 
 ## title
-shading with noise
+Animal Well
 ## subtitle
-blender, after effects, photoshop
+Photoshop
 ## description
-this group came out of developing procedural shader setups in blender that could produce stylized value banding and then break that banding apart with texture. i was looking for a controlled way to make values step across a surface or image without feeling flat. these three tests orbit fallout 76, metroid prime 3, and stardew valley while pushing that same shader thinking in different directions.
+I made this illustration after playing Animal Well because the game left such a strong impression on me visually and tonally. I wanted to sit with that feeling and build a piece around its eerie charm, sharp contrast, and sense of mystery. It was especially surreal to later see it travel through online spaces and then learn that Billy Basso, the creator of Animal Well, bought it as a print after coming across it there.
 ## preset
-carousel-media
+single-media
 ## colors
-- title: feffe5
-- subtitle: ffc62f
-- description: fff3b3
-- background: 120a1a
-- brightness: dark
+- title: 120a1a
+- subtitle: 3e9ee2
+- description: 7e482e
+- background: ffffff
+- brightness: light

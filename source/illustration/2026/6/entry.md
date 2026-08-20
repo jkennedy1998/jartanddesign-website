@@ -12,5 +12,5 @@ single-media
 - title: 26411d
 - subtitle: 8a3f23
 - description: 26411d
-- background: f7f0dc
+- background: ffffff
 - brightness: light

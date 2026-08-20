@@ -1,16 +1,16 @@
 # entry-data
 
 ## title
-leafboat
+Chainsaw in the Bag
 ## subtitle
-blender, photoshop
+after effects, photoshop, watercolor pencils on paper
 ## description
-this was part of a stretch of experimental workflow work after college while i was trying to get a better handle on mixed media between 3d modeling and lighting and 2d illustration. leafboat came out of that phase as a small piece where i could push atmosphere, texture, and painterly treatment without giving up the dimensional base.
+This piece came out of combining a hand-made traditional drawing base with digital editing and motion treatment. I liked the push and pull between the softness of watercolor pencil texture on paper and the sharper timing and compositing control I could get once it moved into After Effects and Photoshop.
 ## preset
 single-media
 ## colors
-- title: 120a1a
-- subtitle: 4c4567
-- description: 4c4567
-- background: feffe5
+- title: 010e36
+- subtitle: e36325
+- description: 1e3666
+- background: ffffff
 - brightness: light

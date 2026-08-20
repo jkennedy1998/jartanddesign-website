@@ -11,6 +11,6 @@ single-media
 ## colors
 - title: 6a2dd8
 - subtitle: e36325
-- description: 6a2dd8
-- background: ffffff
+- description: 479d35
+- background: b988d4
 - brightness: light

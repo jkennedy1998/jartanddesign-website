@@ -225,15 +225,17 @@ footer.site .tg-shell {
   position: relative;
   background: var(--slice-background, var(--slice-bg-current, #222));
   overflow: hidden;
-  --slice-media-edge-color: var(--slice-bg-current, #222);
-  --slice-media-overlay-color: var(--slice-bg-current, #222);
   --slice-media-edge-color: var(--slice-bg-inactive, #FEFFE5);
   --slice-media-overlay-color: var(--slice-bg-inactive, #FEFFE5);
-  --slice-media-edge-size: 50px;
-  --slice-media-edge-solid: 10px;
+  --slice-media-edge-size: 72px;
+  --slice-media-edge-solid: 0px;
   --slice-media-overlay-alpha: 0;
   --slice-media-edge-opacity: 0;
   transition: background-color 220ms ease;
+}
+.portfolio-slice.portfolio-carousel-slice {
+  --slice-media-edge-size: 120px;
+  transition: none;
 }
 .portfolio-slice::after {
   content: "";
@@ -280,18 +282,10 @@ footer.site .tg-shell {
 .portfolio-slice-media-wrap::after {
   z-index: 4;
   background:
-    linear-gradient(to bottom, var(--slice-media-edge-color) 0 var(--slice-media-edge-solid), transparent 100%) top center / 100% var(--slice-media-edge-size) no-repeat,
-    linear-gradient(to top, var(--slice-media-edge-color) 0 var(--slice-media-edge-solid), transparent 100%) bottom center / 100% var(--slice-media-edge-size) no-repeat,
-    linear-gradient(to right, var(--slice-media-edge-color) 0 var(--slice-media-edge-solid), transparent 100%) left center / var(--slice-media-edge-size) 100% no-repeat,
-    linear-gradient(to left, var(--slice-media-edge-color) 0 var(--slice-media-edge-solid), transparent 100%) right center / var(--slice-media-edge-size) 100% no-repeat,
-    radial-gradient(140% 100% at 50% 0%, color-mix(in srgb, var(--slice-media-edge-color) 42%, transparent), transparent 62%) top center / 100% var(--slice-media-edge-size) no-repeat,
-    radial-gradient(140% 100% at 50% 100%, color-mix(in srgb, var(--slice-media-edge-color) 42%, transparent), transparent 62%) bottom center / 100% var(--slice-media-edge-size) no-repeat,
-    radial-gradient(100% 140% at 0% 50%, color-mix(in srgb, var(--slice-media-edge-color) 42%, transparent), transparent 62%) left center / var(--slice-media-edge-size) 100% no-repeat,
-    radial-gradient(100% 140% at 100% 50%, color-mix(in srgb, var(--slice-media-edge-color) 42%, transparent), transparent 62%) right center / var(--slice-media-edge-size) 100% no-repeat,
-    radial-gradient(80% 80% at 0% 0%, color-mix(in srgb, var(--slice-media-edge-color) 36%, transparent), transparent 76%) top left / calc(var(--slice-media-edge-size) * 1.5) calc(var(--slice-media-edge-size) * 1.5) no-repeat,
-    radial-gradient(92% 88% at 100% 0%, color-mix(in srgb, var(--slice-media-edge-color) 30%, transparent), transparent 77%) top right / calc(var(--slice-media-edge-size) * 1.65) calc(var(--slice-media-edge-size) * 1.45) no-repeat,
-    radial-gradient(88% 94% at 0% 100%, color-mix(in srgb, var(--slice-media-edge-color) 28%, transparent), transparent 77%) bottom left / calc(var(--slice-media-edge-size) * 1.55) calc(var(--slice-media-edge-size) * 1.6) no-repeat,
-    radial-gradient(84% 90% at 100% 100%, color-mix(in srgb, var(--slice-media-edge-color) 34%, transparent), transparent 76%) bottom right / calc(var(--slice-media-edge-size) * 1.6) calc(var(--slice-media-edge-size) * 1.55) no-repeat;
+    linear-gradient(to bottom, var(--slice-media-edge-color) 0%, transparent 100%) top center / 100% var(--slice-media-edge-size) no-repeat,
+    linear-gradient(to top, var(--slice-media-edge-color) 0%, transparent 100%) bottom center / 100% var(--slice-media-edge-size) no-repeat,
+    linear-gradient(to right, var(--slice-media-edge-color) 0%, transparent 100%) left center / var(--slice-media-edge-size) 100% no-repeat,
+    linear-gradient(to left, var(--slice-media-edge-color) 0%, transparent 100%) right center / var(--slice-media-edge-size) 100% no-repeat;
   mix-blend-mode: normal;
   opacity: var(--slice-media-edge-opacity);
   transition: opacity 220ms ease;
@@ -308,6 +302,13 @@ footer.site .tg-shell {
 }
 .portfolio-slice.is-dimmed .portfolio-slice-media-wrap::after {
   opacity: 1;
+}
+.portfolio-slice.is-dimmed .portfolio-carousel-stage::after {
+  opacity: 1;
+}
+.portfolio-carousel-media-wrap::before,
+.portfolio-carousel-media-wrap::after {
+  content: none;
 }
 .portfolio-slice-title,
 .portfolio-slice-subtitle,
@@ -429,19 +430,63 @@ footer.site .tg-shell {
 }
 .portfolio-carousel-media-wrap {
   margin-top: 0.25rem;
+  display: flex;
+  justify-content: center;
+  background: transparent;
 }
 .portfolio-carousel-stage {
   position: relative;
   z-index: 1;
   overflow: hidden;
+  min-height: 1px;
+  max-width: 100%;
+  background: transparent;
 }
-.portfolio-carousel-image {
+.portfolio-carousel-stage::before,
+.portfolio-carousel-stage::after {
+  content: none;
+}
+.portfolio-slice .portfolio-carousel-image {
   position: absolute;
-  inset: 0;
+  top: 0;
+  left: 50%;
+  width: auto;
+  height: 100%;
+  max-width: none;
   opacity: 0;
-  transform: translateX(0);
+  transform: translateX(-50%);
   will-change: transform, opacity;
   pointer-events: none;
+  overflow: hidden;
+  background: transparent;
+}
+.portfolio-slice .portfolio-carousel-image::before,
+.portfolio-slice .portfolio-carousel-image::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.portfolio-slice .portfolio-carousel-image::before {
+  z-index: 2;
+  background: var(--carousel-layer-background, var(--slice-background, #222));
+  opacity: var(--slice-media-overlay-alpha);
+}
+.portfolio-slice .portfolio-carousel-image::after {
+  z-index: 3;
+  background:
+    linear-gradient(to bottom, var(--carousel-layer-background, var(--slice-background, #222)) 0%, transparent 100%) top center / 100% var(--slice-media-edge-size) no-repeat,
+    linear-gradient(to top, var(--carousel-layer-background, var(--slice-background, #222)) 0%, transparent 100%) bottom center / 100% var(--slice-media-edge-size) no-repeat,
+    linear-gradient(to right, var(--carousel-layer-background, var(--slice-background, #222)) 0%, transparent 100%) left center / var(--slice-media-edge-size) 100% no-repeat,
+    linear-gradient(to left, var(--carousel-layer-background, var(--slice-background, #222)) 0%, transparent 100%) right center / var(--slice-media-edge-size) 100% no-repeat;
+  opacity: var(--slice-media-edge-opacity);
+}
+.portfolio-slice .portfolio-carousel-image-media {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: fill;
+  background: transparent;
 }
 .portfolio-carousel-image.is-current {
   position: relative;
@@ -449,10 +494,14 @@ footer.site .tg-shell {
   opacity: 1;
   pointer-events: auto;
 }
+.portfolio-carousel-image.is-current .portfolio-carousel-image-media {
+  pointer-events: auto;
+}
 .portfolio-carousel-image.is-entering,
 .portfolio-carousel-image.is-leaving {
   position: absolute;
-  inset: 0;
+  top: 0;
+  left: 50%;
 }
 .portfolio-carousel-image.is-entering {
   z-index: 2;
@@ -462,10 +511,10 @@ footer.site .tg-shell {
   opacity: 1;
 }
 .portfolio-carousel-image.is-entering.from-left {
-  transform: translateX(-400px);
+  transform: translateX(calc(-50% - 400px));
 }
 .portfolio-carousel-image.is-entering.from-right {
-  transform: translateX(400px);
+  transform: translateX(calc(-50% + 400px));
 }
 .portfolio-carousel-image.is-animating.is-entering,
 .portfolio-carousel-image.is-animating.is-leaving {
@@ -474,15 +523,15 @@ footer.site .tg-shell {
     opacity 500ms cubic-bezier(0.2, 0, 0.8, 1);
 }
 .portfolio-carousel-image.is-animating.is-entering {
-  transform: translateX(0);
+  transform: translateX(-50%);
   opacity: 1;
 }
 .portfolio-carousel-image.is-animating.is-leaving.to-left {
-  transform: translateX(400px);
+  transform: translateX(calc(-50% + 400px));
   opacity: 0;
 }
 .portfolio-carousel-image.is-animating.is-leaving.to-right {
-  transform: translateX(-400px);
+  transform: translateX(calc(-50% - 400px));
   opacity: 0;
 }
 .portfolio-custom-block {

@@ -9,8 +9,8 @@ Made in 2025, this pixel waveform demo was part of a workflow experiment around 
 ## preset
 video-media
 ## colors
-- title: feffe5
-- subtitle: a9c448
-- description: fff3b3
-- background: 120a1a
-- brightness: dark
+- title: 434718
+- subtitle: e46425
+- description: 547a27
+- background: e2e890
+- brightness: light
