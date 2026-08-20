@@ -3,67 +3,67 @@ window.PORTFOLIO_PAGE_SOURCE = {
     {
       entry: "source/illustration/2026/1/entry.md",
       mediaDir: "source/illustration/2026/1/",
-      mediaFiles: {"images":["source/illustration/2026/1/image-1.svg"],"videos":[]},
+      mediaFiles: {"images":["source/illustration/2026/1/image-1.gif"],"videos":[]},
       sourceText: `# entry-data
 
 ## title
-signal study
+leafboat
 ## subtitle
-digital illustration, shape language
+blender, photoshop
 ## description
-an illustration slice rebuilt onto the same source-driven portfolio system as sketchbook so the page content can now be managed from files instead of hardcoded page markup.
+this was part of a stretch of experimental workflow work after college while i was trying to get a better handle on mixed media between 3d modeling and lighting and 2d illustration. leafboat came out of that phase as a small piece where i could push atmosphere, texture, and painterly treatment without giving up the dimensional base.
 ## preset
 single-media
 ## colors
 - title: 120a1a
-- subtitle: 120a1a
-- description: 120a1a
-- background: e8a15d
+- subtitle: 4c4567
+- description: 4c4567
+- background: feffe5
 - brightness: light
 `
     },
     {
       entry: "source/illustration/2026/2/entry.md",
       mediaDir: "source/illustration/2026/2/",
-      mediaFiles: {"images":[],"videos":["source/illustration/2026/2/video-1.mp4"]},
+      mediaFiles: {"images":["source/illustration/2026/2/image-1.gif"],"videos":[]},
       sourceText: `# entry-data
 
 ## title
-motion fragment
+wildfire
 ## subtitle
-video-media preset
+after effects, blender, photoshop
 ## description
-this keeps the moving slice in the illustration page, but now it is declared through the same source folder structure that sketchbook uses.
+this was largely a technical experiment to develop a fire shader i could reuse across many projects. it mixes hand-animated portions with math-driven modulation so the flame reads as richer and more detailed than it really is. a given line of fire is just a single low poly plane, with the look doing most of the heavy lifting.
 ## preset
-video-media
+single-media
 ## colors
 - title: feffe5
-- subtitle: a9c448
-- description: e2e990
-- background: 304021
+- subtitle: ffc62f
+- description: fff3b3
+- background: 120a1a
 - brightness: dark
 `
     },
     {
       entry: "source/illustration/2026/3/entry.md",
       mediaDir: "source/illustration/2026/3/",
-      mediaFiles: {"images":["source/illustration/2026/3/image-1.svg","source/illustration/2026/3/image-2.svg"],"videos":[]},
+      mediaFiles: {"images":["source/illustration/2026/3/image-1.gif","source/illustration/2026/3/image-2.gif","source/illustration/2026/3/image-3.gif"],"videos":[]},
       sourceText: `# entry-data
 
 ## title
-form variations
+shading with noise
 ## subtitle
-carousel-media preset
+blender, after effects, photoshop
 ## description
-multiple illustrations can now be grouped into one ordered slice so the illustration page can scale the same way the sketchbook page does.
+this group came out of developing procedural shader setups in blender that could produce stylized value banding and then break that banding apart with texture. i was looking for a controlled way to make values step across a surface or image without feeling flat. these three tests orbit fallout 76, metroid prime 3, and stardew valley while pushing that same shader thinking in different directions.
 ## preset
 carousel-media
 ## colors
-- title: e36325
-- subtitle: a9c448
-- description: 8c9d4f
-- background: ffffff
-- brightness: light
+- title: feffe5
+- subtitle: ffc62f
+- description: fff3b3
+- background: 120a1a
+- brightness: dark
 `
     }
   ]

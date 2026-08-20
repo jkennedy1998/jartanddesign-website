@@ -1,16 +1,16 @@
 # entry-data
 
 ## title
-form variations
+shading with noise
 ## subtitle
-carousel-media preset
+blender, after effects, photoshop
 ## description
-multiple illustrations can now be grouped into one ordered slice so the illustration page can scale the same way the sketchbook page does.
+this group came out of developing procedural shader setups in blender that could produce stylized value banding and then break that banding apart with texture. i was looking for a controlled way to make values step across a surface or image without feeling flat. these three tests orbit fallout 76, metroid prime 3, and stardew valley while pushing that same shader thinking in different directions.
 ## preset
 carousel-media
 ## colors
-- title: e36325
-- subtitle: a9c448
-- description: 8c9d4f
-- background: ffffff
-- brightness: light
+- title: feffe5
+- subtitle: ffc62f
+- description: fff3b3
+- background: 120a1a
+- brightness: dark

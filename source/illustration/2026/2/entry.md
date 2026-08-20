@@ -1,16 +1,16 @@
 # entry-data
 
 ## title
-motion fragment
+wildfire
 ## subtitle
-video-media preset
+after effects, blender, photoshop
 ## description
-this keeps the moving slice in the illustration page, but now it is declared through the same source folder structure that sketchbook uses.
+this was largely a technical experiment to develop a fire shader i could reuse across many projects. it mixes hand-animated portions with math-driven modulation so the flame reads as richer and more detailed than it really is. a given line of fire is just a single low poly plane, with the look doing most of the heavy lifting.
 ## preset
-video-media
+single-media
 ## colors
 - title: feffe5
-- subtitle: a9c448
-- description: e2e990
-- background: 304021
+- subtitle: ffc62f
+- description: fff3b3
+- background: 120a1a
 - brightness: dark

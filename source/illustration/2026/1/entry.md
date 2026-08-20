@@ -1,16 +1,16 @@
 # entry-data
 
 ## title
-signal study
+leafboat
 ## subtitle
-digital illustration, shape language
+blender, photoshop
 ## description
-an illustration slice rebuilt onto the same source-driven portfolio system as sketchbook so the page content can now be managed from files instead of hardcoded page markup.
+this was part of a stretch of experimental workflow work after college while i was trying to get a better handle on mixed media between 3d modeling and lighting and 2d illustration. leafboat came out of that phase as a small piece where i could push atmosphere, texture, and painterly treatment without giving up the dimensional base.
 ## preset
 single-media
 ## colors
 - title: 120a1a
-- subtitle: 120a1a
-- description: 120a1a
-- background: e8a15d
+- subtitle: 4c4567
+- description: 4c4567
+- background: feffe5
 - brightness: light
