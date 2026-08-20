@@ -87,6 +87,50 @@ single-media
 - background: ffffff
 - brightness: light
 `
+    },
+    {
+      entry: "source/illustration/2026/5/entry.md",
+      mediaDir: "source/illustration/2026/5/",
+      mediaFiles: {"images":["source/illustration/2026/5/image-1.gif"],"videos":[]},
+      sourceText: `# entry-data
+
+## title
+Chainsaw in the Bag
+## subtitle
+after effects, photoshop, watercolor pencils on paper
+## description
+This piece came out of combining a hand-made traditional drawing base with digital editing and motion treatment. I liked the push and pull between the softness of watercolor pencil texture on paper and the sharper timing and compositing control I could get once it moved into After Effects and Photoshop.
+## preset
+single-media
+## colors
+- title: feffe5
+- subtitle: f8c6b2
+- description: fff3e8
+- background: 203a73
+- brightness: dark
+`
+    },
+    {
+      entry: "source/illustration/2026/6/entry.md",
+      mediaDir: "source/illustration/2026/6/",
+      mediaFiles: {"images":["source/illustration/2026/6/image-1.jpg"],"videos":[]},
+      sourceText: `# entry-data
+
+## title
+Christmas 2025
+## subtitle
+Photoshop
+## description
+This was the Christmas card I gave out in 2025 as part of a yearly tradition. For this one I wanted to center my new home and include my cat Chainsaw along with my new cat Machete, so it became a little snapshot of that moment in life turned into a holiday illustration.
+## preset
+single-media
+## colors
+- title: 26411d
+- subtitle: 8a3f23
+- description: 26411d
+- background: f7f0dc
+- brightness: light
+`
     }
   ]
 };
