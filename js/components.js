@@ -8,7 +8,8 @@ const NAV = [
   ["contact.html", "about", "abt."],
 ];
 
-const SITE_NAV_BREAKPOINT = "(max-width: 640px)";
+const SITE_NAV_BREAKPOINT = "(max-width: 860px)";
+const FOOTER_CTA_WORDS = ["talk.", "design.", "make art.", "collaborate.", "create.", "develop."];
 let siteHeaderCompact = null;
 let siteHeaderResizeHandler = null;
 
@@ -23,31 +24,45 @@ function renderHeader() {
   const cur = currentPage();
   const compact = window.matchMedia(SITE_NAV_BREAKPOINT).matches;
   siteHeaderCompact = compact;
+  const [brand, ...items] = NAV;
+  const renderLink = ([href, label, shortLabel], isBrand = false) => {
+    const active = href === cur;
+    const text = compact ? shortLabel : label;
+    const idleWeight = active ? (isBrand ? 640 : 320) : 160;
+    const hoverWeight = idleWeight >= 640 ? 640 : idleWeight * 2;
+    const className = [
+      "site-nav-link",
+      "site-dissolve",
+      isBrand ? "site-nav-brand" : "",
+      active ? "active" : "",
+    ].filter(Boolean).join(" ");
+    return `<a href="${href}" class="${className}" data-weight-idle="${idleWeight}" data-weight-hover="${hoverWeight}" data-weight-press="640" data-weight-inactive="80">${text}</a>`;
+  };
   el.innerHTML =
     '<div class="tg-shell">' +
+    '<div class="site-nav-shell">' +
+    renderLink(brand, true) +
     '<nav class="site-nav" aria-label="Primary">' +
-    NAV.map(([href, label, shortLabel]) => {
-      const active = href === cur;
-      const isBrand = href === "index.html";
-      const text = compact ? shortLabel : label;
-      const idleWeight = active ? (isBrand ? 640 : 320) : 160;
-      const hoverWeight = idleWeight >= 640 ? 640 : idleWeight * 2;
-      const className = [
-        "site-nav-link",
-        "site-dissolve",
-        isBrand ? "site-nav-brand" : "",
-        active ? "active" : "",
-      ].filter(Boolean).join(" ");
-      return `<a href="${href}" class="${className}" data-weight-idle="${idleWeight}" data-weight-hover="${hoverWeight}" data-weight-press="640" data-weight-inactive="80">${text}</a>`;
-    }).join("") +
+    items.map((item) => renderLink(item)).join("") +
     "</nav>" +
+    "</div>" +
     "</div>";
 }
 
 function renderFooter() {
   const el = document.querySelector("footer.site");
   if (!el) return;
-  el.innerHTML = `<div class="tg-shell">&copy; ${new Date().getFullYear()} Jart &amp; Design</div>`;
+  el.innerHTML =
+    '<div class="tg-shell">' +
+    '<div class="site-footer-shell">' +
+    '<div class="site-footer-sentence">' +
+    '<p class="site-footer-copy">you made it this far, let\'s</p>' +
+    '<span class="site-footer-gap" aria-hidden="true"> </span>' +
+    `<a href="contact.html" class="site-footer-cta site-dissolve" data-weight-idle="80" data-weight-hover="160" data-weight-press="320">${FOOTER_CTA_WORDS[0]}</a>` +
+    '<span class="site-footer-cta-measure" aria-hidden="true">develop.</span>' +
+    '</div>' +
+    '</div>' +
+    '</div>';
 }
 
 function initHomeVideoBackgrounds() {
@@ -147,6 +162,24 @@ class DissolveTextRenderer {
   weightFromDataset(name, fallback) {
     const key = `weight${name[0].toUpperCase()}${name.slice(1)}`;
     return Number(this.element.dataset[key] || fallback);
+  }
+
+  setLabel(label) {
+    this.label = String(label).replace(/\n$/, "");
+    this.lines = this.label.split("\n");
+    if (this.element.matches("a")) {
+      this.element.setAttribute("aria-label", this.label.replace(/\n/g, " "));
+    }
+    this.text.textContent = this.label;
+    this.layerCanvases = new Map();
+    this.resize();
+    this.renderLayers();
+    if (this.animating) {
+      const visibleProgress = Math.min(1, this.progress + this.onsetLead);
+      this.drawFrame(this.fromWeight, this.toWeight, visibleProgress);
+      return;
+    }
+    this.drawFrame(this.currentWeight, this.currentWeight, 1);
   }
 
   resize() {
@@ -631,6 +664,905 @@ function initSiteHeaderStates() {
   sync();
 }
 
+function easeOutQuint(t) {
+  return 1 - ((1 - t) ** 5);
+}
+
+function measureCharsPerLine(element, reserveCh = 0, maxChars = Infinity) {
+  const style = getComputedStyle(element);
+  const fontSize = Number.parseFloat(style.fontSize) || 16;
+  const family = style.fontFamily || 'monospace';
+  const canvas = measureCharsPerLine.canvas || (measureCharsPerLine.canvas = document.createElement("canvas"));
+  const ctx = canvas.getContext("2d");
+  ctx.font = `${style.fontWeight || 160} ${fontSize}px ${family}`;
+  const charWidth = Math.max(1, ctx.measureText("M").width);
+  const available = Math.max(1, element.clientWidth - (reserveCh * charWidth));
+  return Math.max(1, Math.min(maxChars, Math.floor(available / charWidth)));
+}
+
+function resolveSliceAppearance(slice, isActive) {
+  const read = (name) => slice.style.getPropertyValue(name).trim();
+  return isActive
+    ? {
+        background: read("--slice-bg-current"),
+        title: read("--slice-title-color-active"),
+        subtitle: read("--slice-subtitle-color-active"),
+        button: read("--slice-button-color-active"),
+        desc: read("--slice-desc-color-active"),
+      }
+    : {
+        background: read("--slice-bg-inactive"),
+        title: read("--slice-title-color-inactive"),
+        subtitle: read("--slice-subtitle-color-inactive"),
+        button: read("--slice-button-color-inactive"),
+        desc: read("--slice-desc-color-inactive"),
+      };
+}
+
+function mixHexColors(base, target, amount = 0.5) {
+  const parse = (value) => {
+    const hex = String(value || "").trim().replace(/^#/, "");
+    const normalized = hex.length === 3
+      ? hex.split("").map((char) => char + char).join("")
+      : hex;
+    if (!/^[0-9a-f]{6}$/i.test(normalized)) return null;
+    return {
+      r: Number.parseInt(normalized.slice(0, 2), 16),
+      g: Number.parseInt(normalized.slice(2, 4), 16),
+      b: Number.parseInt(normalized.slice(4, 6), 16),
+    };
+  };
+  const rgbToHex = ({ r, g, b }) => `#${[r, g, b].map((channel) => Math.max(0, Math.min(255, Math.round(channel))).toString(16).padStart(2, "0")).join("")}`;
+  const from = parse(base);
+  const to = parse(target);
+  if (!from || !to) return base;
+  const mix = Math.max(0, Math.min(1, amount));
+  return rgbToHex({
+    r: from.r + ((to.r - from.r) * mix),
+    g: from.g + ((to.g - from.g) * mix),
+    b: from.b + ((to.b - from.b) * mix),
+  });
+}
+
+function buildPortfolioSlice(slice, index) {
+  const section = document.createElement("section");
+  section.className = "portfolio-slice";
+  section.dataset.sliceIndex = String(index);
+
+  const tone = slice.tone === "dark" ? "dark" : "light";
+  section.dataset.sliceTone = tone;
+  const currentBackgroundColor = slice.backgroundColor || "#222";
+  const currentTitleColor = slice.titleColor || slice.textColor || "#FEFFE5";
+  const currentSubtitleColor = slice.subtitleColor || slice.textColor || "#FEFFE5";
+  const currentButtonColor = slice.buttonColor || slice.textColor || "#FEFFE5";
+  const currentDescColor = slice.descColor || slice.textColor || "#FEFFE5";
+  const inactive = tone === "dark"
+    ? {
+        background: mixHexColors(currentBackgroundColor, "#16110E", 0.7),
+        title: mixHexColors(currentTitleColor, "#C4702B", 0.52),
+        subtitle: mixHexColors(currentSubtitleColor, "#A8561A", 0.58),
+        button: mixHexColors(currentButtonColor, "#894835", 0.62),
+        desc: mixHexColors(currentDescColor, "#894835", 0.62),
+        overlay: mixHexColors(currentBackgroundColor, "#16110E", 0.82),
+      }
+    : {
+        background: mixHexColors(currentBackgroundColor, "#FEFFE5", 0.78),
+        title: mixHexColors(currentTitleColor, "#C4702B", 0.46),
+        subtitle: mixHexColors(currentSubtitleColor, "#AC9D7C", 0.52),
+        button: mixHexColors(currentButtonColor, "#C5B5A8", 0.58),
+        desc: mixHexColors(currentDescColor, "#C5B5A8", 0.58),
+        overlay: mixHexColors(currentBackgroundColor, "#FEFFE5", 0.88),
+      };
+
+  section.style.setProperty("--slice-bg-current", currentBackgroundColor);
+  section.style.setProperty("--slice-background", currentBackgroundColor);
+  section.style.setProperty("--slice-bg-inactive", inactive.background);
+  section.style.setProperty("--slice-overlay-color", inactive.overlay);
+  section.style.setProperty("--slice-title-color-active", currentTitleColor);
+  section.style.setProperty("--slice-subtitle-color-active", currentSubtitleColor);
+  section.style.setProperty("--slice-button-color-active", currentButtonColor);
+  section.style.setProperty("--slice-desc-color-active", currentDescColor);
+  section.style.setProperty("--slice-title-color-inactive", inactive.title);
+  section.style.setProperty("--slice-subtitle-color-inactive", inactive.subtitle);
+  section.style.setProperty("--slice-button-color-inactive", inactive.button);
+  section.style.setProperty("--slice-desc-color-inactive", inactive.desc);
+  section.style.setProperty("--slice-title-color", currentTitleColor);
+  section.style.setProperty("--slice-subtitle-color", currentSubtitleColor);
+  section.style.setProperty("--slice-button-color", currentButtonColor);
+  section.style.setProperty("--slice-desc-color", currentDescColor);
+
+  const inner = document.createElement("div");
+  inner.className = "portfolio-slice-inner";
+  section.append(inner);
+
+  const setRenderedLabel = (element, label) => {
+    if (element.__dissolveRenderer) element.__dissolveRenderer.setLabel(label);
+    else element.textContent = label;
+  };
+
+  const title = document.createElement("p");
+  title.className = "portfolio-slice-title home-dissolve portfolio-dissolve";
+  title.dataset.weightIdle = "160";
+  title.dataset.weightHover = "320";
+  title.textContent = slice.title || "";
+
+  const subtitle = document.createElement("p");
+  subtitle.className = "portfolio-slice-subtitle home-dissolve portfolio-dissolve";
+  subtitle.dataset.weightIdle = "80";
+  subtitle.dataset.weightHover = "160";
+  subtitle.textContent = slice.subtitle || "";
+
+  const descriptionRow = document.createElement("div");
+  descriptionRow.className = "portfolio-slice-description-row";
+
+  const toggle = document.createElement("button");
+  toggle.type = "button";
+  toggle.className = "portfolio-slice-toggle home-dissolve portfolio-dissolve portfolio-dissolve-button";
+  toggle.dataset.weightIdle = "80";
+  toggle.dataset.weightHover = "160";
+  toggle.dataset.weightPress = "320";
+  toggle.textContent = "▧▩▨  ";
+  toggle.setAttribute("aria-expanded", "false");
+
+  const preview = document.createElement("p");
+  preview.className = "portfolio-slice-description portfolio-slice-description-preview home-dissolve portfolio-dissolve";
+  preview.dataset.weightIdle = "80";
+  preview.dataset.weightHover = "160";
+
+  const extra = document.createElement("p");
+  extra.className = "portfolio-slice-description portfolio-slice-description-extra";
+
+  const descriptionState = {
+    text: slice.description || "",
+    firstLine: "",
+    remainder: "",
+    frame: null,
+    previewBuffer: 6,
+    charMs: 22,
+  };
+
+  const buildDescriptionLayout = () => {
+    const charsPerLine = measureCharsPerLine(descriptionRow, 5, 44);
+    const authoredLines = descriptionState.text.replace(/\r\n?/g, "\n").split("\n");
+    if (authoredLines.length > 1) {
+      descriptionState.firstLine = authoredLines.shift() || "";
+      descriptionState.remainder = authoredLines.join("\n").trim();
+      return;
+    }
+
+    const text = descriptionState.text;
+    const rawLine = text.slice(0, charsPerLine);
+    const breakIndex = rawLine.lastIndexOf(" ");
+    const splitIndex = breakIndex > Math.floor(charsPerLine * 0.6) ? breakIndex : charsPerLine;
+    descriptionState.firstLine = text.slice(0, splitIndex);
+    descriptionState.remainder = text.slice(splitIndex).trimStart();
+  };
+
+  const getPreviewBuffer = () => Math.min(descriptionState.previewBuffer, descriptionState.firstLine.length);
+  const buildPreviewLabel = (revealedCount = 0) => {
+    if (!descriptionState.remainder) return descriptionState.firstLine;
+    const buffer = getPreviewBuffer();
+    const baseCount = Math.max(0, descriptionState.firstLine.length - buffer);
+    const solidCount = Math.min(descriptionState.firstLine.length, baseCount + Math.max(0, Math.min(buffer, revealedCount)));
+    return `${descriptionState.firstLine.slice(0, solidCount)}${".".repeat(Math.max(0, descriptionState.firstLine.length - solidCount))}`;
+  };
+
+  const buildExtraLabel = (visibleCount = 0, { trailingHead = false } = {}) => {
+    if (!descriptionState.remainder) return "";
+    const safeVisibleCount = Math.max(0, Math.min(descriptionState.remainder.length, visibleCount));
+    if (safeVisibleCount <= 0) return "";
+    const visible = descriptionState.remainder.slice(0, safeVisibleCount);
+    if (!trailingHead) return visible;
+    const remaining = Math.max(0, descriptionState.remainder.length - safeVisibleCount);
+    return `${visible}${".".repeat(Math.min(getPreviewBuffer(), remaining))}`;
+  };
+
+  const applyDescriptionFrame = (previewRevealCount, extraVisibleLength, options = {}) => {
+    setRenderedLabel(preview, buildPreviewLabel(previewRevealCount));
+    extra.textContent = buildExtraLabel(extraVisibleLength, options);
+    extra.style.display = (extra.textContent || section.classList.contains("is-expanded")) ? "block" : "none";
+  };
+
+  const renderDescription = ({ expanded = section.classList.contains("is-expanded"), animate = false } = {}) => {
+    buildDescriptionLayout();
+    const toggleLabel = expanded ? "▨▩▧  " : "▧▩▨  ";
+    setRenderedLabel(toggle, toggleLabel);
+    toggle.setAttribute("aria-expanded", expanded ? "true" : "false");
+    section.classList.toggle("is-expanded", expanded);
+    if (descriptionState.frame) cancelAnimationFrame(descriptionState.frame);
+
+    if (!expanded) {
+      if (!animate || !descriptionState.remainder) {
+        setRenderedLabel(preview, buildPreviewLabel(0));
+        extra.textContent = "";
+        extra.style.display = "none";
+        return;
+      }
+
+      const buffer = getPreviewBuffer();
+      const totalChars = buffer + descriptionState.remainder.length;
+      const startAt = performance.now();
+      const duration = 500;
+      const step = (now) => {
+        const progress = Math.min(1, (now - startAt) / duration);
+        const remainingTotal = Math.round(totalChars * (1 - easeOutQuint(progress)));
+        applyDescriptionFrame(Math.min(buffer, remainingTotal), Math.max(0, remainingTotal - buffer), { trailingHead: true });
+        if (progress < 1) descriptionState.frame = requestAnimationFrame(step);
+        else descriptionState.frame = null;
+      };
+      descriptionState.frame = requestAnimationFrame(step);
+      return;
+    }
+
+    if (!descriptionState.remainder) {
+      setRenderedLabel(preview, descriptionState.firstLine);
+      extra.textContent = "";
+      extra.style.display = "none";
+      return;
+    }
+
+    if (!animate) {
+      setRenderedLabel(preview, descriptionState.firstLine);
+      extra.textContent = descriptionState.remainder;
+      extra.style.display = "block";
+      return;
+    }
+
+    applyDescriptionFrame(0, 0, { trailingHead: true });
+    const buffer = getPreviewBuffer();
+    const totalChars = buffer + descriptionState.remainder.length;
+    const startAt = performance.now();
+    const duration = 500;
+    const step = (now) => {
+      const progress = Math.min(1, (now - startAt) / duration);
+      const revealedTotal = Math.round(totalChars * easeOutQuint(progress));
+      applyDescriptionFrame(Math.min(buffer, revealedTotal), Math.max(0, revealedTotal - buffer), { trailingHead: true });
+      if (progress < 1) descriptionState.frame = requestAnimationFrame(step);
+      else {
+        descriptionState.frame = null;
+        setRenderedLabel(preview, descriptionState.firstLine);
+        extra.textContent = descriptionState.remainder;
+      }
+    };
+    descriptionState.frame = requestAnimationFrame(step);
+  };
+
+  section.__renderDescription = renderDescription;
+  toggle.addEventListener("click", () => {
+    renderDescription({ expanded: !section.classList.contains("is-expanded"), animate: true });
+  });
+
+  descriptionRow.append(toggle, preview, extra);
+
+  const appendStandardCopy = () => {
+    const copy = document.createElement("div");
+    copy.className = "portfolio-slice-copy";
+    copy.append(title, subtitle, descriptionRow);
+    inner.append(copy);
+  };
+
+  if (slice.type === "single-media") {
+    const mediaWrap = document.createElement("div");
+    mediaWrap.className = "portfolio-slice-media-wrap";
+    const image = document.createElement("img");
+    image.className = "portfolio-slice-media";
+    image.src = slice.media?.src || "";
+    image.alt = slice.media?.alt || slice.title || "";
+    mediaWrap.append(image);
+    inner.append(mediaWrap);
+    appendStandardCopy();
+  } else if (slice.type === "video-media") {
+    const mediaWrap = document.createElement("div");
+    mediaWrap.className = "portfolio-slice-media-wrap";
+    const video = document.createElement("video");
+    video.className = "portfolio-slice-media";
+    video.src = slice.media?.src || "";
+    video.muted = true;
+    video.loop = true;
+    video.controls = false;
+    video.preload = "auto";
+    video.playsInline = true;
+    video.dataset.videoHovering = "false";
+    if (slice.media?.poster) video.poster = slice.media.poster;
+    mediaWrap.append(video);
+    inner.append(mediaWrap);
+    appendStandardCopy();
+  } else if (slice.type === "carousel-media") {
+    const controls = document.createElement("div");
+    controls.className = "portfolio-carousel-controls";
+    const left = document.createElement("button");
+    left.type = "button";
+    left.className = "portfolio-carousel-button portfolio-carousel-arrow home-dissolve portfolio-dissolve portfolio-dissolve-button";
+    left.dataset.weightIdle = "80";
+    left.dataset.weightHover = "160";
+    left.dataset.weightPress = "320";
+    left.textContent = " ◪▨\n◩▧▩\n  ▧";
+
+    const indices = document.createElement("div");
+    indices.className = "portfolio-carousel-indices";
+
+    const right = document.createElement("button");
+    right.type = "button";
+    right.className = "portfolio-carousel-button portfolio-carousel-arrow home-dissolve portfolio-dissolve portfolio-dissolve-button";
+    right.dataset.weightIdle = "80";
+    right.dataset.weightHover = "160";
+    right.dataset.weightPress = "320";
+    right.textContent = "▧◪\n▩▨◪\n▨";
+
+    const mediaWrap = document.createElement("div");
+    mediaWrap.className = "portfolio-slice-media-wrap portfolio-carousel-media-wrap";
+    const stage = document.createElement("div");
+    stage.className = "portfolio-carousel-stage";
+    const frontImage = document.createElement("img");
+    frontImage.className = "portfolio-slice-media portfolio-carousel-image is-current";
+    const backImage = document.createElement("img");
+    backImage.className = "portfolio-slice-media portfolio-carousel-image";
+    stage.append(frontImage, backImage);
+    mediaWrap.append(stage);
+
+    const items = Array.isArray(slice.media?.items) ? slice.media.items : [];
+    const state = { activeIndex: 0, currentLayer: frontImage, nextLayer: backImage, isAnimating: false };
+    const indexButtons = items.map((item, itemIndex) => {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "portfolio-carousel-button portfolio-carousel-index home-dissolve portfolio-dissolve portfolio-dissolve-button";
+      button.dataset.weightIdle = "80";
+      button.dataset.weightHover = "160";
+      button.dataset.weightPress = "320";
+      button.addEventListener("click", () => goToIndex(itemIndex, itemIndex > state.activeIndex ? "right" : "left"));
+      indices.append(button);
+      return button;
+    });
+
+    const labelForIndex = (itemIndex, selected) => selected
+      ? `┏━┓\n┃${itemIndex + 1}┃\n┗━┛`
+      : "┏━┓\n┃ ┃\n┗━┛";
+
+    const setImageContent = (image, item, itemIndex) => {
+      if (!image || !item) return;
+      image.src = item.src || "";
+      image.alt = item.alt || `${slice.title || "carousel image"} ${itemIndex + 1}`;
+    };
+
+    const syncCarouselButtons = () => {
+      indexButtons.forEach((button, itemIndex) => {
+        const selected = itemIndex === state.activeIndex;
+        button.classList.toggle("is-selected", selected);
+        setRenderedLabel(button, labelForIndex(itemIndex, selected));
+      });
+    };
+
+    const finishTransition = () => {
+      const previousCurrent = state.currentLayer;
+      const incomingCurrent = state.nextLayer;
+      previousCurrent.className = "portfolio-slice-media portfolio-carousel-image";
+      incomingCurrent.className = "portfolio-slice-media portfolio-carousel-image is-current";
+      state.currentLayer = incomingCurrent;
+      state.nextLayer = previousCurrent;
+      stage.style.height = "";
+      state.isAnimating = false;
+    };
+
+    const goToIndex = (nextIndex, explicitDirection = null) => {
+      if (!items.length || nextIndex === state.activeIndex || state.isAnimating) return;
+      const previousIndex = state.activeIndex;
+      const direction = explicitDirection || (nextIndex > previousIndex ? "right" : "left");
+      const incoming = items[nextIndex];
+      setImageContent(state.nextLayer, incoming, nextIndex);
+      stage.style.height = `${state.currentLayer.offsetHeight}px`;
+      state.currentLayer.className = `portfolio-slice-media portfolio-carousel-image is-current is-leaving to-${direction}`;
+      state.nextLayer.className = `portfolio-slice-media portfolio-carousel-image is-entering from-${direction}`;
+      state.activeIndex = nextIndex;
+      state.isAnimating = true;
+      syncCarouselButtons();
+      requestAnimationFrame(() => {
+        state.currentLayer.classList.add("is-animating");
+        state.nextLayer.classList.add("is-animating");
+      });
+      window.setTimeout(finishTransition, 520);
+    };
+
+    left.addEventListener("click", () => {
+      if (!items.length) return;
+      goToIndex((state.activeIndex - 1 + items.length) % items.length, "left");
+    });
+    right.addEventListener("click", () => {
+      if (!items.length) return;
+      goToIndex((state.activeIndex + 1) % items.length, "right");
+    });
+
+    controls.append(left, indices, right);
+    inner.append(mediaWrap, controls);
+    appendStandardCopy();
+    if (items[0]) setImageContent(state.currentLayer, items[0], 0);
+    syncCarouselButtons();
+  } else if (slice.type === "custom" && slice.html) {
+    const custom = document.createElement("div");
+    custom.innerHTML = slice.html;
+    inner.append(custom);
+  } else {
+    appendStandardCopy();
+  }
+
+  return section;
+}
+
+function parseSketchbookEntryMarkdown(sourceText) {
+  const lines = sourceText.replace(/\r\n?/g, "\n").split("\n");
+  const entry = {};
+  let section = null;
+
+  lines.forEach((line) => {
+    const heading = line.match(/^##\s+(.+)$/);
+    if (heading) {
+      section = heading[1].trim().toLowerCase();
+      if (!(section in entry)) entry[section] = "";
+      return;
+    }
+    if (!section) return;
+    entry[section] = entry[section]
+      ? `${entry[section]}\n${line}`
+      : line;
+  });
+
+  Object.keys(entry).forEach((key) => {
+    entry[key] = entry[key].trim();
+  });
+
+  return entry;
+}
+
+function parseSketchbookColorConfig(sourceText) {
+  const config = {};
+  if (!sourceText) return config;
+
+  sourceText.split("\n").forEach((line) => {
+    const match = line.match(/^\s*[-*]\s*([^:]+):\s*(.*?)\s*$/);
+    if (!match) return;
+    config[match[1].trim().toLowerCase()] = match[2].trim();
+  });
+
+  return config;
+}
+
+function normalizeHexColor(value, fallback) {
+  if (!value) return fallback;
+  const trimmed = String(value).trim().replace(/^#/, "");
+  if (/^[0-9a-f]{3}$/i.test(trimmed) || /^[0-9a-f]{6}$/i.test(trimmed)) return `#${trimmed}`;
+  return fallback;
+}
+
+function resolveSketchbookSourceSlice(entry, source) {
+  const preset = (entry.preset || "single-media").trim().toLowerCase();
+  const mediaDir = source.mediaDir || source.entry.replace(/[^/]+$/, "");
+  const mediaFiles = source.mediaFiles || {};
+  const colorConfig = parseSketchbookColorConfig(entry.colors);
+  const brightness = (colorConfig.brightness || "").trim().toLowerCase();
+  const tone = brightness === "dark" ? "dark" : brightness === "light" ? "light" : (preset === "video-media" ? "dark" : "light");
+  const defaultColors = tone === "dark"
+    ? {
+        background: "#304021",
+        title: "#FEFFE5",
+        subtitle: "#A9C448",
+        description: "#E2E990",
+      }
+    : {
+        background: "#E8A15D",
+        title: "#120A1A",
+        subtitle: "#120A1A",
+        description: "#120A1A",
+      };
+  const shared = {
+    title: entry.title || "untitled",
+    subtitle: entry.subtitle || "",
+    description: entry.description || "",
+  };
+  const resolvedColors = {
+    backgroundColor: normalizeHexColor(colorConfig.background, defaultColors.background),
+    titleColor: normalizeHexColor(colorConfig.title, defaultColors.title),
+    subtitleColor: normalizeHexColor(colorConfig.subtitle, defaultColors.subtitle),
+    descColor: normalizeHexColor(colorConfig.description, defaultColors.description),
+  };
+  resolvedColors.buttonColor = resolvedColors.descColor;
+
+  if (preset === "video-media") {
+    return {
+      type: "video-media",
+      tone,
+      ...resolvedColors,
+      media: {
+        type: "video",
+        src: mediaFiles.videos?.[0] || `${mediaDir}video-1.mp4`,
+      },
+      ...shared,
+    };
+  }
+
+  if (preset === "carousel-media") {
+    return {
+      type: "carousel-media",
+      tone,
+      ...resolvedColors,
+      media: {
+        type: "carousel",
+        items: (mediaFiles.images || []).map((src, itemIndex) => ({
+          src,
+          alt: `${entry.title || "sketchbook image"} ${itemIndex + 1}`,
+        })),
+      },
+      ...shared,
+    };
+  }
+
+  return {
+    type: "single-media",
+    tone,
+    ...resolvedColors,
+    media: {
+      type: "image",
+      src: mediaFiles.images?.[0] || `${mediaDir}image-1.jpg`,
+      alt: entry.title || "sketchbook image",
+    },
+    ...shared,
+  };
+}
+
+async function loadPortfolioSourceSlices(pageKey) {
+  const sources = window.PORTFOLIO_PAGE_SOURCE?.[pageKey];
+  if (!Array.isArray(sources) || !sources.length) return null;
+
+  const slices = await Promise.all(sources.map(async (source) => {
+    const resolved = typeof source === "string" ? { entry: source } : source;
+    if (!resolved) return null;
+
+    let sourceText = "";
+    if (resolved.entry) {
+      try {
+        const response = await fetch(resolved.entry, { cache: "no-store" });
+        if (response.ok) sourceText = await response.text();
+      } catch {}
+    }
+    if (!sourceText) sourceText = resolved.sourceText || "";
+    if (!sourceText) return null;
+
+    const entry = parseSketchbookEntryMarkdown(sourceText);
+    return resolveSketchbookSourceSlice(entry, resolved);
+  }));
+
+  return slices.filter(Boolean);
+}
+
+async function initPortfolioPage() {
+  const page = document.querySelector(".portfolio-page[data-portfolio-page]");
+  const mount = page?.querySelector(".portfolio-slices");
+  if (!page || !mount) return;
+
+  const pageKey = page.dataset.portfolioPage;
+  const inlineSlices = window.PORTFOLIO_PAGE_SLICES?.[pageKey];
+  const sourceSlices = Array.isArray(inlineSlices) && inlineSlices.length
+    ? null
+    : await loadPortfolioSourceSlices(pageKey);
+  const slices = Array.isArray(inlineSlices) && inlineSlices.length ? inlineSlices : sourceSlices;
+  if (!Array.isArray(slices) || !slices.length) return;
+
+  mount.replaceChildren(...slices.map((slice, index) => buildPortfolioSlice(slice, index)));
+
+  const sliceEls = [...mount.querySelectorAll(".portfolio-slice")];
+  const renderDescriptions = (animate = false) => {
+    sliceEls.forEach((slice) => slice.__renderDescription?.({ expanded: slice.classList.contains("is-expanded"), animate }));
+  };
+  renderDescriptions(false);
+  const renderers = new Map();
+  mount.querySelectorAll(".portfolio-dissolve").forEach((element) => {
+    const renderer = new DissolveTextRenderer(element);
+    element.__dissolveRenderer = renderer;
+    renderers.set(element, renderer);
+  });
+  const videoEls = [...mount.querySelectorAll(".portfolio-slice video")];
+  const firstFrameTime = 0.01;
+  const primeVideoFrame = (video) => {
+    const applyFirstFrame = () => {
+      const nextTime = Math.min(firstFrameTime, Math.max(0, (video.duration || firstFrameTime)));
+      const finalize = () => {
+        video.pause();
+        video.dataset.firstFrameReady = "true";
+      };
+      if (Math.abs(video.currentTime - nextTime) < 0.001) {
+        finalize();
+        return;
+      }
+      const handleSeeked = () => {
+        video.removeEventListener("seeked", handleSeeked);
+        finalize();
+      };
+      video.addEventListener("seeked", handleSeeked, { once: true });
+      try {
+        video.currentTime = nextTime;
+      } catch {
+        finalize();
+      }
+    };
+
+    if (video.readyState >= 2) {
+      applyFirstFrame();
+      return;
+    }
+
+    const handleLoadedData = () => {
+      video.removeEventListener("loadeddata", handleLoadedData);
+      applyFirstFrame();
+    };
+    video.addEventListener("loadeddata", handleLoadedData, { once: true });
+  };
+  const syncVideoPlayback = (activeSlice) => {
+    videoEls.forEach((video) => {
+      const slice = video.closest(".portfolio-slice");
+      const isActive = slice === activeSlice;
+      const showControls = video.dataset.videoHovering === "true";
+      video.controls = showControls;
+      if (isActive) {
+        video.play().catch(() => {});
+        return;
+      }
+      video.pause();
+      if (video.dataset.firstFrameReady === "true") {
+        try {
+          video.currentTime = Math.min(firstFrameTime, Math.max(0, (video.duration || firstFrameTime)));
+        } catch {}
+      } else {
+        primeVideoFrame(video);
+      }
+    });
+  };
+  videoEls.forEach((video) => {
+    primeVideoFrame(video);
+    const setVideoHovering = (value) => {
+      video.dataset.videoHovering = value ? "true" : "false";
+      video.controls = value;
+    };
+    video.addEventListener("pointerenter", () => setVideoHovering(true));
+    video.addEventListener("pointerleave", () => setVideoHovering(false));
+    video.addEventListener("focus", () => setVideoHovering(true));
+    video.addEventListener("blur", () => setVideoHovering(false));
+  });
+  let hovered = null;
+  let hoveredToggle = null;
+
+  const resolveFocusSlice = () => {
+    const targetY = window.scrollY + window.innerHeight * 0.33;
+    let best = sliceEls[0] || null;
+    let bestDistance = Infinity;
+    sliceEls.forEach((slice) => {
+      const rect = slice.getBoundingClientRect();
+      const center = window.scrollY + rect.top + rect.height * 0.5;
+      const distance = Math.abs(center - targetY);
+      if (distance < bestDistance) {
+        bestDistance = distance;
+        best = slice;
+      }
+    });
+    return best;
+  };
+
+  const sync = () => {
+    const active = hovered || resolveFocusSlice();
+    syncVideoPlayback(active);
+    sliceEls.forEach((slice) => {
+      const isActive = slice === active;
+      const appearance = resolveSliceAppearance(slice, isActive);
+      slice.classList.toggle("is-active", isActive);
+      slice.classList.toggle("is-dimmed", !isActive);
+      slice.style.setProperty("--slice-background", appearance.background);
+      slice.style.setProperty("--slice-title-color", appearance.title);
+      slice.style.setProperty("--slice-subtitle-color", appearance.subtitle);
+      slice.style.setProperty("--slice-button-color", appearance.button);
+      slice.style.setProperty("--slice-desc-color", appearance.desc);
+    });
+    renderers.forEach((renderer, element) => {
+      const slice = element.closest(".portfolio-slice");
+      const isActive = slice?.classList.contains("is-active");
+      const isButton = element.classList.contains("portfolio-dissolve-button");
+      const isHoveredButton = hoveredToggle === element;
+      const isSelectedCarouselIndex = element.classList.contains("portfolio-carousel-index") && element.classList.contains("is-selected");
+      const target = isButton && isHoveredButton
+        ? renderer.weightFromDataset("press", renderer.weightFromDataset("hover", renderer.currentWeight))
+        : renderer.weightFromDataset(isSelectedCarouselIndex || isActive ? "hover" : "idle", renderer.currentWeight);
+      const sliceStyle = slice ? getComputedStyle(slice) : null;
+      const colorVar = element.classList.contains("portfolio-slice-title")
+        ? "--slice-title-color"
+        : element.classList.contains("portfolio-slice-subtitle")
+          ? "--slice-subtitle-color"
+          : element.classList.contains("portfolio-slice-toggle") || element.classList.contains("portfolio-carousel-arrow")
+            ? "--slice-button-color"
+            : element.classList.contains("portfolio-carousel-index")
+              ? (element.classList.contains("is-selected") ? "--slice-desc-color" : "--slice-subtitle-color")
+              : "--slice-desc-color";
+      const nextColor = sliceStyle ? renderer.parseColor(sliceStyle.getPropertyValue(colorVar).trim()) : null;
+      renderer.refreshAppearance(nextColor);
+      renderer.setTarget(target);
+    });
+
+    sliceEls.forEach((slice) => {
+      const descColor = getComputedStyle(slice).getPropertyValue("--slice-desc-color").trim();
+      slice.querySelectorAll(".portfolio-slice-description-extra").forEach((element) => {
+        element.style.color = descColor;
+      });
+    });
+  };
+
+  sliceEls.forEach((slice) => {
+    slice.addEventListener("pointerenter", () => {
+      hovered = slice;
+      sync();
+    });
+    slice.addEventListener("pointerleave", () => {
+      if (hovered === slice) hovered = null;
+      sync();
+    });
+  });
+
+  mount.querySelectorAll(".portfolio-dissolve-button").forEach((button) => {
+    button.addEventListener("pointerenter", () => {
+      hoveredToggle = button;
+      sync();
+    });
+    button.addEventListener("pointerleave", () => {
+      if (hoveredToggle === button) hoveredToggle = null;
+      sync();
+    });
+    button.addEventListener("focus", () => {
+      hoveredToggle = button;
+      sync();
+    });
+    button.addEventListener("blur", () => {
+      if (hoveredToggle === button) hoveredToggle = null;
+      sync();
+    });
+  });
+
+  window.addEventListener("scroll", () => {
+    if (hovered) return;
+    sync();
+  }, { passive: true });
+  window.addEventListener("resize", () => {
+    renderDescriptions(false);
+    renderers.forEach((renderer) => renderer.resize());
+    sync();
+  });
+  document.fonts?.ready?.then(() => renderers.forEach((renderer) => renderer.resize()));
+  document.addEventListener("pointerleave", (event) => {
+    if (event.relatedTarget !== null) return;
+    hovered = null;
+    sync();
+  });
+
+  sync();
+}
+
+function initSiteFooterStates() {
+  const footer = document.querySelector("footer.site");
+  const cta = footer?.querySelector(".site-footer-cta");
+  const copy = footer?.querySelector(".site-footer-copy");
+  if (!footer || !cta || !copy) return;
+
+  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const ctaRenderer = reduceMotion ? null : new DissolveTextRenderer(cta);
+  if (ctaRenderer) cta.__dissolveRenderer = ctaRenderer;
+  if (ctaRenderer) ctaRenderer.durationMs = 320;
+  let hovering = false;
+  let nearby = false;
+  let proximityStrength = 0;
+  let breathTimer = null;
+  let wordTimer = null;
+  let breathHigh = false;
+  let wordIndex = 0;
+
+  const isEngaged = () => hovering || nearby;
+  const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
+  const mix = (start, end, t) => start + (end - start) * t;
+
+  const setWord = (word) => {
+    if (cta.__dissolveRenderer) cta.__dissolveRenderer.setLabel(word);
+    else cta.textContent = word;
+  };
+
+  const resolveCycleStrength = () => (hovering ? 1 : proximityStrength);
+  const resolveBreathDelay = () => Math.round(mix(1400, 520, resolveCycleStrength()));
+  const resolveWordDelay = () => Math.round(mix(480, 170, resolveCycleStrength()));
+
+  const sync = () => {
+    const engaged = isEngaged();
+    const idleColor = "#E36325";
+    const hoverColor = "#120A1A";
+    copy.style.color = idleColor;
+    cta.style.color = engaged ? hoverColor : idleColor;
+    if (ctaRenderer) {
+      ctaRenderer.refreshAppearance(ctaRenderer.parseColor(engaged ? hoverColor : idleColor));
+      ctaRenderer.setTarget(
+        engaged
+          ? ctaRenderer.weightFromDataset(breathHigh ? "press" : "hover", breathHigh ? 320 : 160)
+          : ctaRenderer.weightFromDataset(breathHigh ? "hover" : "idle", breathHigh ? 160 : 80)
+      );
+    } else {
+      cta.style.fontWeight = engaged ? (breathHigh ? "320" : "160") : (breathHigh ? "160" : "80");
+    }
+  };
+
+  const stopBreathing = () => {
+    if (!breathTimer) return;
+    window.clearTimeout(breathTimer);
+    breathTimer = null;
+  };
+
+  const queueBreathing = () => {
+    stopBreathing();
+    if (!isEngaged()) return;
+    breathTimer = window.setTimeout(() => {
+      breathHigh = !breathHigh;
+      sync();
+      queueBreathing();
+    }, resolveBreathDelay());
+  };
+
+  const stopWords = () => {
+    if (!wordTimer) return;
+    window.clearTimeout(wordTimer);
+    wordTimer = null;
+  };
+
+  const queueWords = () => {
+    stopWords();
+    if (!isEngaged()) return;
+    wordTimer = window.setTimeout(() => {
+      wordIndex = (wordIndex + 1) % FOOTER_CTA_WORDS.length;
+      setWord(FOOTER_CTA_WORDS[wordIndex]);
+      queueWords();
+    }, resolveWordDelay());
+  };
+
+  const refreshMotionLoops = () => {
+    if (!isEngaged()) {
+      stopBreathing();
+      stopWords();
+      sync();
+      return;
+    }
+    queueBreathing();
+    queueWords();
+    sync();
+  };
+
+  const updateEngagement = ({ nextHover = hovering, nextNearby = nearby, nextStrength = proximityStrength } = {}) => {
+    hovering = nextHover;
+    nearby = nextNearby;
+    proximityStrength = clamp(nextStrength, 0, 1);
+    refreshMotionLoops();
+  };
+
+  cta.addEventListener("pointerenter", () => updateEngagement({ nextHover: true }));
+  cta.addEventListener("pointerleave", () => updateEngagement({ nextHover: false }));
+  cta.addEventListener("focus", () => updateEngagement({ nextHover: true }));
+  cta.addEventListener("blur", () => updateEngagement({ nextHover: false }));
+  const updateProximity = (event) => {
+    const rect = footer.getBoundingClientRect();
+    const x = Math.max(rect.left, Math.min(event.clientX, rect.right));
+    const y = Math.max(rect.top, Math.min(event.clientY, rect.bottom));
+    const dx = event.clientX - x;
+    const dy = event.clientY - y;
+    const distance = Math.hypot(dx, dy);
+    const radius = 140;
+    const strength = clamp(1 - (distance / radius), 0, 1);
+    updateEngagement({ nextNearby: strength > 0, nextStrength: strength });
+  };
+
+  document.addEventListener("pointermove", updateProximity, { passive: true });
+  document.addEventListener("pointerleave", () => updateEngagement({ nextNearby: false, nextStrength: 0 }));
+  window.addEventListener("resize", () => cta.__dissolveRenderer?.resize());
+  document.fonts?.ready?.then(() => cta.__dissolveRenderer?.resize());
+  setWord(FOOTER_CTA_WORDS[wordIndex]);
+  sync();
+}
+
 function initHomeStates() {
   if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
     const home = document.querySelector(".home");
@@ -756,5 +1688,7 @@ document.addEventListener("DOMContentLoaded", () => {
   renderHeader();
   renderFooter();
   initSiteHeaderStates();
+  initSiteFooterStates();
+  initPortfolioPage().catch((error) => console.error(error));
   initHomeStates();
 });
