@@ -42,6 +42,50 @@ carousel-media
 - background: ffffff
 - brightness: light
 `
+    },
+    {
+      entry: "source/sketchbook/2026/3/entry.md",
+      mediaDir: "source/sketchbook/2026/3/",
+      mediaFiles: {"images":["source/sketchbook/2026/3/image-1.gif"],"videos":[]},
+      sourceText: `# entry-data
+
+## title
+me-mow and re-row say happy halloween!
+## subtitle
+after effects, blender, photoshop
+## description
+This piece was an experiment in combining 2d illustration with splining, texture passes, and simple animation flows inside After Effects. I was using it as a way to feel out how drawn shapes, soft motion, and layered surface noise could work together without losing the charm of the original illustration.
+## preset
+single-media
+## colors
+- title: 120a1a
+- subtitle: 7c8c3a
+- description: 5a5f28
+- background: f8ef9a
+- brightness: light
+`
+    },
+    {
+      entry: "source/sketchbook/2026/4/entry.md",
+      mediaDir: "source/sketchbook/2026/4/",
+      mediaFiles: {"images":["source/sketchbook/2026/4/image-1.jpg"],"videos":[]},
+      sourceText: `# entry-data
+
+## title
+Iris
+## subtitle
+Photoshop
+## description
+This illustration was made as a gift for a family member and became a nice space to experiment with texture, graphic framing, and layered decorative elements. I was especially interested in balancing a more natural floral subject with flatter shapes, patterned marks, and color decisions that could make it feel both personal and designed.
+## preset
+single-media
+## colors
+- title: 6a2dd8
+- subtitle: e36325
+- description: 6a2dd8
+- background: ffffff
+- brightness: light
+`
     }
   ]
 };
