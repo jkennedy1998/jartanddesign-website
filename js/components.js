@@ -1201,6 +1201,12 @@ function buildPortfolioSlice(slice, index) {
     }
     requestAnimationFrame(() => syncStageSize(items[state.activeIndex]));
     scheduleAutoAdvance();
+  } else if (slice.type === "custom-media" && slice.media?.html) {
+    const mediaWrap = document.createElement("div");
+    mediaWrap.className = "portfolio-slice-media-wrap portfolio-custom-media-wrap";
+    mediaWrap.innerHTML = slice.media.html;
+    inner.append(mediaWrap);
+    appendStandardCopy();
   } else if (slice.type === "custom" && slice.html) {
     const custom = document.createElement("div");
     custom.innerHTML = slice.html;
@@ -1304,6 +1310,16 @@ function collectCarouselItemColorSections(entry, preset) {
   return sections;
 }
 
+function resolveCustomMediaHtml(sourceText, source) {
+  const mediaFiles = source.mediaFiles || {};
+  const images = mediaFiles.images || [];
+  const videos = mediaFiles.videos || [];
+  return (sourceText || "")
+    .replace(/\{\{\s*mediaDir\s*\}\}/gi, source.mediaDir || "")
+    .replace(/\{\{\s*image-(\d+)\s*\}\}/gi, (_, index) => images[Number(index) - 1] || "")
+    .replace(/\{\{\s*video-(\d+)\s*\}\}/gi, (_, index) => videos[Number(index) - 1] || "");
+}
+
 function resolveSketchbookSourceSlice(entry, source) {
   const preset = (entry.preset || "single-media").trim().toLowerCase();
   const mediaDir = source.mediaDir || (source.entry ? source.entry.replace(/[^/]+$/, "") : "");
@@ -1349,6 +1365,19 @@ function resolveSketchbookSourceSlice(entry, source) {
             tone: itemAppearance.tone,
           };
         }),
+      },
+      ...shared,
+    };
+  }
+
+  if (preset === "custom-media") {
+    return {
+      type: "custom-media",
+      tone,
+      ...resolvedColors,
+      media: {
+        type: "custom",
+        html: resolveCustomMediaHtml(entry["media html"], { ...source, mediaDir, mediaFiles }),
       },
       ...shared,
     };

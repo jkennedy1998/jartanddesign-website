@@ -534,6 +534,101 @@ footer.site .tg-shell {
   transform: translateX(calc(-50% - 400px));
   opacity: 0;
 }
+.portfolio-custom-media-wrap {
+  background: transparent;
+}
+
+.design-thermo-stack,
+.design-labcorp-grid,
+.design-rendezvous-layout,
+.design-gehc-flow,
+.design-letters-ge-stack,
+.design-osmo-pumps-layout {
+  display: grid;
+  gap: 1rem;
+}
+
+.design-thermo-stack figure,
+.design-labcorp-grid figure,
+.design-rendezvous-layout figure,
+.design-gehc-flow figure,
+.design-letters-ge-stack figure,
+.design-osmo-pumps-layout figure,
+.design-osmo-pumps-pair figure {
+  margin: 0;
+}
+
+.design-thermo-pair,
+.design-rendezvous-pair,
+.design-osmo-pumps-pair {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.design-osmo-pumps-pair {
+  align-items: start;
+}
+
+.design-osmo-pumps-pair figure {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+.design-gehc-flow-wide {
+  width: 100%;
+}
+
+.design-gehc-flow-wide img {
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+}
+
+.design-osmo-pumps-pair img {
+  width: auto;
+  max-width: 100%;
+  height: min(52rem, 62vw);
+  object-fit: contain;
+}
+
+.design-osmo-pumps-layout > figure img {
+  width: 100%;
+  height: auto;
+}
+
+.design-rendezvous-layout {
+  grid-template-columns: 1fr;
+}
+
+.design-thermo-stack img,
+.design-labcorp-grid img,
+.design-rendezvous-layout img,
+.design-gehc-flow img,
+.design-letters-ge-stack img,
+.design-osmo-pumps-layout img,
+.design-osmo-pumps-pair img {
+  display: block;
+  width: 100%;
+  height: auto;
+  background: transparent;
+}
+
+.portfolio-slice .design-thermo-stack img,
+.portfolio-slice .design-labcorp-grid img,
+.portfolio-slice .design-rendezvous-layout img,
+.portfolio-slice .design-gehc-flow img,
+.portfolio-slice .design-letters-ge-stack img,
+.portfolio-slice .design-osmo-pumps-layout img,
+.portfolio-slice .design-osmo-pumps-pair img {
+  background: transparent;
+}
+
+.design-labcorp-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
 .portfolio-custom-block {
   min-height: 12rem;
   border: 1px solid currentColor;
@@ -542,7 +637,35 @@ footer.site .tg-shell {
   align-items: end;
 }
 
+@media (max-width: 1180px) {
+  .design-labcorp-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
 @media (max-width: 860px) {
+  .design-thermo-stack,
+  .design-thermo-pair,
+  .design-labcorp-grid,
+  .design-rendezvous-layout,
+  .design-rendezvous-pair,
+  .design-gehc-flow,
+  .design-letters-ge-stack,
+  .design-osmo-pumps-layout,
+  .design-osmo-pumps-pair {
+    gap: 0.75rem;
+  }
+
+  .design-labcorp-grid,
+  .design-osmo-pumps-pair {
+    grid-template-columns: 1fr;
+  }
+
+  .design-osmo-pumps-pair img {
+    width: 100%;
+    height: auto;
+  }
+
   .grid { grid-template-columns: 1fr; }
 
   .site-nav-shell {
