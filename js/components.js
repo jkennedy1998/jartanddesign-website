@@ -1,11 +1,11 @@
 // Shared header + footer, one source of truth.
 const NAV = [
-  ["index.html", "j art and design", "j"],
-  ["illustration.html", "illustration", "illus."],
-  ["design.html", "design", "dsgn."],
-  ["development.html", "development", "dev."],
-  ["sketchbook.html", "sketchbook", "sktch."],
-  ["contact.html", "about", "abt."],
+  ["/", "j art and design", "j"],
+  ["/illustration", "illustration", "illus."],
+  ["/design", "design", "dsgn."],
+  ["/development", "development", "dev."],
+  ["/sketchbook", "sketchbook", "sktch."],
+  ["/about", "about", "abt."],
 ];
 
 const SITE_NAV_BREAKPOINT = "(max-width: 860px)";
@@ -13,9 +13,14 @@ const FOOTER_CTA_WORDS = ["talk.", "design.", "make art.", "collaborate.", "crea
 let siteHeaderCompact = null;
 let siteHeaderResizeHandler = null;
 
+function normalizePagePath(pathname = "/") {
+  const trimmed = String(pathname || "/").replace(/\/+$/, "") || "/";
+  const last = trimmed.split("/").pop() || "index";
+  return last.replace(/\.html$/i, "") || "index";
+}
+
 function currentPage() {
-  const p = location.pathname.split("/").pop() || "index.html";
-  return p;
+  return normalizePagePath(location.pathname);
 }
 
 function renderHeader() {
@@ -26,7 +31,7 @@ function renderHeader() {
   siteHeaderCompact = compact;
   const [brand, ...items] = NAV;
   const renderLink = ([href, label, shortLabel], isBrand = false) => {
-    const active = href === cur;
+    const active = normalizePagePath(href) === cur;
     const text = compact ? shortLabel : label;
     const idleWeight = active ? (isBrand ? 640 : 320) : 160;
     const hoverWeight = idleWeight >= 640 ? 640 : idleWeight * 2;
@@ -58,7 +63,7 @@ function renderFooter() {
     '<div class="site-footer-sentence">' +
     '<p class="site-footer-copy">you made it this far, let\'s</p>' +
     '<span class="site-footer-gap" aria-hidden="true"> </span>' +
-    `<a href="contact.html" class="site-footer-cta site-dissolve" data-weight-idle="80" data-weight-hover="160" data-weight-press="320">${FOOTER_CTA_WORDS[0]}</a>` +
+    `<a href="/about" class="site-footer-cta site-dissolve" data-weight-idle="80" data-weight-hover="160" data-weight-press="320">${FOOTER_CTA_WORDS[0]}</a>` +
     '<span class="site-footer-cta-measure" aria-hidden="true">develop.</span>' +
     '</div>' +
     '</div>' +
@@ -1383,6 +1388,16 @@ function resolveSketchbookSourceSlice(entry, source) {
     };
   }
 
+  if (preset === "custom") {
+    return {
+      type: "custom",
+      tone,
+      ...resolvedColors,
+      html: resolveCustomMediaHtml(entry.html, { ...source, mediaDir, mediaFiles }),
+      ...shared,
+    };
+  }
+
   return {
     type: "single-media",
     tone,
@@ -1410,6 +1425,224 @@ async function loadPortfolioSourceSlices(pageKey) {
   return slices.filter(Boolean);
 }
 
+function initInteractiveAsciiPanels(root = document) {
+  const panels = [...root.querySelectorAll("[data-interactive-ascii='true']")];
+  if (!panels.length) return;
+
+  const hashFloat = (row, col, seed = 0) => {
+    const value = Math.sin(((row + 1) * 12.9898) + ((col + 1) * 78.233) + (seed * 37.719));
+    return value - Math.floor(value);
+  };
+  const lerp = (a, b, t) => a + ((b - a) * t);
+  const smoothstep = (edge0, edge1, value) => {
+    const t = Math.max(0, Math.min(1, (value - edge0) / Math.max(edge1 - edge0, 0.0001)));
+    return t * t * (3 - (2 * t));
+  };
+  const parseCssColor = (value, fallback) => {
+    const match = String(value || "").match(/(\d+(?:\.\d+)?)/g);
+    if (!match || match.length < 3) return fallback;
+    return match.slice(0, 3).map((part) => Number(part));
+  };
+  const mixColor = (a, b, t) => [0, 1, 2].map((index) => Math.round(lerp(a[index], b[index], t)));
+  const formatColor = (rgb) => `rgb(${rgb.join(", ")})`;
+  const sampleNoise = (row, col) => {
+    const x = col * 0.18;
+    const y = row * 0.18;
+    const x0 = Math.floor(x);
+    const y0 = Math.floor(y);
+    const tx = x - x0;
+    const ty = y - y0;
+    const n00 = hashFloat(y0, x0, 11);
+    const n10 = hashFloat(y0, x0 + 1, 11);
+    const n01 = hashFloat(y0 + 1, x0, 11);
+    const n11 = hashFloat(y0 + 1, x0 + 1, 11);
+    const sx = tx * tx * (3 - (2 * tx));
+    const sy = ty * ty * (3 - (2 * ty));
+    return lerp(lerp(n00, n10, sx), lerp(n01, n11, sx), sy);
+  };
+
+  panels.forEach((panel) => {
+    const sourceText = panel.textContent.replace(/\r\n?/g, "\n");
+    const sourceRows = sourceText.split("\n");
+    const padding = 10;
+    const sourceHeight = sourceRows.length;
+    const sourceWidth = Math.max(...sourceRows.map((row) => row.length), 1);
+    const solidCells = [];
+
+    sourceRows.forEach((rowText, rowIndex) => {
+      [...rowText].forEach((char, colIndex) => {
+        if (char !== " ") solidCells.push({ row: rowIndex, col: colIndex, char });
+      });
+    });
+
+    const pickDitherChar = (nearestChar, row, col, strength) => {
+      const alternates = [nearestChar, "#", "*", "·", "•"];
+      if (/[┏┓┗┛┣┫┳┻╱│─┬┴┐└]/.test(nearestChar)) alternates.push("│", "─", "+");
+      if (/[█▓]/.test(nearestChar)) alternates.push("▓", "▒", "░");
+      const roll = hashFloat(row, col, 2);
+      if (strength < 0.24) return roll > 0.55 ? "·" : "•";
+      return alternates[Math.floor(roll * alternates.length)] || nearestChar;
+    };
+
+    const slice = panel.closest(".portfolio-slice");
+    const sliceStyles = getComputedStyle(slice || panel);
+    const backgroundColor = sliceStyles.getPropertyValue("--slice-background").trim();
+    if (backgroundColor) {
+      document.body.classList.add("has-portfolio-status-page");
+      document.body.style.setProperty("--portfolio-page-background", backgroundColor);
+    }
+    const titleColor = parseCssColor(sliceStyles.getPropertyValue("--slice-title-color"), [18, 10, 26]);
+    const subtitleColor = parseCssColor(sliceStyles.getPropertyValue("--slice-subtitle-color"), [227, 99, 37]);
+    const beigeColor = [172, 157, 124];
+
+    const buildExpandedRows = () => {
+      const expandedRows = [];
+      const height = sourceHeight + (padding * 2);
+      const width = sourceWidth + (padding * 2);
+      for (let row = 0; row < height; row += 1) {
+        const chars = [];
+        for (let col = 0; col < width; col += 1) {
+          const sourceRow = row - padding;
+          const sourceCol = col - padding;
+          const sourceChar = sourceRows[sourceRow]?.[sourceCol] ?? " ";
+          if (sourceRow >= 0 && sourceRow < sourceHeight && sourceCol >= 0 && sourceCol < sourceWidth) {
+            chars.push({ char: sourceChar, dither: false, color: null });
+            continue;
+          }
+
+          let nearest = null;
+          let nearestDistance = Infinity;
+          for (const cell of solidCells) {
+            const distance = Math.max(Math.abs(cell.row - sourceRow), Math.abs(cell.col - sourceCol));
+            if (distance < nearestDistance) {
+              nearestDistance = distance;
+              nearest = cell;
+            }
+          }
+
+          if (!nearest || nearestDistance > padding) {
+            chars.push({ char: " ", dither: false, color: null });
+            continue;
+          }
+
+          const strength = (padding - nearestDistance + 1) / (padding + 1);
+          const noise = hashFloat(row, col, 1);
+          const threshold = (strength * 0.42) + (hashFloat(row, col, 3) * 0.12);
+          if (noise > threshold) {
+            chars.push({ char: " ", dither: false, color: null });
+            continue;
+          }
+
+          const field = sampleNoise(row, col);
+          const beigeToRed = mixColor(beigeColor, subtitleColor, smoothstep(0.18, 0.82, field));
+          const color = formatColor(mixColor(beigeColor, beigeToRed, 0.32 + (strength * 0.68)));
+
+          chars.push({
+            char: pickDitherChar(nearest.char, row, col, strength),
+            dither: true,
+            color,
+          });
+        }
+        expandedRows.push(chars);
+      }
+      return expandedRows;
+    };
+
+    const expandedRows = buildExpandedRows();
+    panel.textContent = "";
+    panel.setAttribute("aria-label", sourceText);
+
+    const cells = [];
+    expandedRows.forEach((rowData, rowIndex) => {
+      const row = document.createElement("span");
+      row.className = "portfolio-ascii-row";
+      rowData.forEach(({ char, dither, color }, colIndex) => {
+        const cell = document.createElement("span");
+        cell.className = "portfolio-ascii-cell";
+        if (dither) cell.dataset.asciiDither = "true";
+        cell.textContent = char === " " ? "\u00A0" : char;
+        if (char === " ") cell.style.visibility = "hidden";
+        if (color) cell.style.color = color;
+        row.append(cell);
+        cells.push({ element: cell, row: rowIndex, col: colIndex, baseColor: color, dither, blank: char === " " });
+      });
+      panel.append(row);
+    });
+
+    const state = {
+      targetCol: null,
+      targetRow: null,
+      currentCol: null,
+      currentRow: null,
+      rafId: null,
+      active: false,
+    };
+
+    const applyFrame = () => {
+      if (state.targetCol == null || state.targetRow == null) {
+        cells.forEach(({ element, baseColor, dither, blank }) => {
+          element.style.fontWeight = "160";
+          element.style.color = blank ? "transparent" : (dither ? baseColor : "var(--slice-desc-color)");
+        });
+        state.currentCol = null;
+        state.currentRow = null;
+        state.rafId = null;
+        return;
+      }
+
+      state.currentCol = state.currentCol == null ? state.targetCol : state.currentCol + ((state.targetCol - state.currentCol) * 0.12);
+      state.currentRow = state.currentRow == null ? state.targetRow : state.currentRow + ((state.targetRow - state.currentRow) * 0.12);
+
+      let keepAnimating = false;
+      if (Math.abs(state.currentCol - state.targetCol) > 0.01 || Math.abs(state.currentRow - state.targetRow) > 0.01) keepAnimating = true;
+
+      cells.forEach(({ element, row, col, baseColor, dither, blank }) => {
+        const dx = Math.abs(col - state.currentCol);
+        const dy = Math.abs(row - state.currentRow);
+        const distance = Math.max(dx, dy);
+        let weight = 160;
+        let color = blank ? "transparent" : (dither ? baseColor : "var(--slice-desc-color)");
+        if (distance <= 1.5) {
+          weight = 640;
+          color = "var(--slice-title-color)";
+        } else if (distance <= 3.5) {
+          weight = 320;
+          color = "var(--slice-subtitle-color)";
+        }
+        element.style.fontWeight = String(weight);
+        element.style.color = color;
+      });
+
+      state.rafId = keepAnimating || state.active ? requestAnimationFrame(applyFrame) : null;
+    };
+
+    const ensureFrame = () => {
+      if (state.rafId != null) return;
+      state.rafId = requestAnimationFrame(applyFrame);
+    };
+
+    const updateTargetFromEvent = (event) => {
+      const rect = panel.getBoundingClientRect();
+      const cols = Math.max(...expandedRows.map((row) => row.length), 1);
+      const rowHeight = rect.height / Math.max(expandedRows.length, 1);
+      const colWidth = rect.width / Math.max(cols, 1);
+      state.targetCol = Math.max(0, Math.min(cols - 1, ((event.clientX - rect.left) / Math.max(colWidth, 1))));
+      state.targetRow = Math.max(0, Math.min(expandedRows.length - 1, ((event.clientY - rect.top) / Math.max(rowHeight, 1))));
+      state.active = true;
+      ensureFrame();
+    };
+
+    panel.addEventListener("pointerenter", updateTargetFromEvent);
+    panel.addEventListener("pointermove", updateTargetFromEvent);
+    panel.addEventListener("pointerleave", () => {
+      state.active = false;
+      state.targetCol = null;
+      state.targetRow = null;
+      ensureFrame();
+    });
+  });
+}
+
 async function initPortfolioPage() {
   const page = document.querySelector(".portfolio-page[data-portfolio-page]");
   const mount = page?.querySelector(".portfolio-slices");
@@ -1424,6 +1657,7 @@ async function initPortfolioPage() {
   if (!Array.isArray(slices) || !slices.length) return;
 
   mount.replaceChildren(...slices.map((slice, index) => buildPortfolioSlice(slice, index)));
+  initInteractiveAsciiPanels(mount);
 
   const sliceEls = [...mount.querySelectorAll(".portfolio-slice")];
   const renderDescriptions = (animate = false) => {

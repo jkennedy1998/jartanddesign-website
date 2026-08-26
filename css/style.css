@@ -125,6 +125,24 @@ header.site.is-hovering .site-nav-link:not(.is-hovered):not(.active):visited {
   color: #AC9D7C;
 }
 main { flex: 1; padding: 2rem 0; }
+body.has-portfolio-status-page {
+  background: var(--portfolio-page-background, var(--bg));
+}
+body.has-portfolio-status-page main {
+  display: flex;
+  align-items: center;
+}
+body.has-portfolio-status-page .portfolio-page,
+body.has-portfolio-status-page .portfolio-slices,
+body.has-portfolio-status-page .portfolio-slice,
+body.has-portfolio-status-page .portfolio-slice-inner,
+body.has-portfolio-status-page .portfolio-status-shell {
+  width: 100%;
+  min-height: 100%;
+}
+body.has-portfolio-status-page .portfolio-slice-inner {
+  justify-content: center;
+}
 h1 { font-weight: 640; margin-bottom: 1rem; }
 h2 { font-weight: 640; margin: 1.5rem 0 0.75rem; color: var(--muted); }
 p { margin-bottom: 0.75rem; color: #ccc; }
@@ -538,6 +556,50 @@ footer.site .tg-shell {
   background: transparent;
 }
 
+.portfolio-status-shell {
+  display: grid;
+  place-items: center;
+  width: 100%;
+}
+
+.portfolio-status-mark,
+.portfolio-status-line {
+  margin: 0;
+}
+
+.portfolio-status-mark {
+  display: block;
+  width: fit-content;
+  max-width: 100%;
+  margin: 0 auto;
+  white-space: normal;
+  color: var(--slice-desc-color, inherit);
+  user-select: none;
+}
+
+.portfolio-status-mark-panel {
+  font-size: clamp(0.72rem, 1vw, 1rem);
+  line-height: var(--tg-line);
+  text-align: left;
+}
+
+.portfolio-ascii-row {
+  display: block;
+  white-space: pre;
+}
+
+.portfolio-ascii-cell {
+  display: inline-block;
+  min-width: 1ch;
+  font-weight: 160;
+  color: var(--slice-desc-color, currentColor);
+  transition: font-weight 180ms ease, color 220ms ease;
+}
+
+.portfolio-ascii-cell[data-ascii-dither="true"] {
+  color: #AC9D7C;
+}
+
 .design-thermo-stack,
 .design-labcorp-grid,
 .design-rendezvous-layout,
@@ -667,6 +729,14 @@ footer.site .tg-shell {
   }
 
   .grid { grid-template-columns: 1fr; }
+
+  .portfolio-status-shell {
+    min-height: 72vh;
+  }
+
+  .portfolio-status-mark-panel {
+    font-size: clamp(0.48rem, 1.6vw, 0.8rem);
+  }
 
   .site-nav-shell {
     gap: 1rem;
