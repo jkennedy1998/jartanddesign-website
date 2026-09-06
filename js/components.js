@@ -960,7 +960,20 @@ function buildPortfolioSlice(slice, index) {
   const appendStandardCopy = () => {
     const copy = document.createElement("div");
     copy.className = "portfolio-slice-copy";
-    copy.append(title, subtitle, descriptionRow);
+    copy.append(title, subtitle);
+    if (Array.isArray(slice.links) && slice.links.length) {
+      const linksRow = document.createElement("div");
+      linksRow.className = "portfolio-slice-links";
+      for (const link of slice.links) {
+        const anchor = document.createElement("a");
+        anchor.className = "portfolio-slice-link";
+        anchor.href = link.url;
+        anchor.textContent = link.label;
+        linksRow.append(anchor);
+      }
+      copy.append(linksRow);
+    }
+    copy.append(descriptionRow);
     inner.append(copy);
   };
 
@@ -1300,6 +1313,16 @@ function resolveSliceColors(colorConfig, defaultColors) {
   return resolvedColors;
 }
 
+function parseSliceLinks(sourceText) {
+  if (!sourceText) return [];
+  const links = [];
+  for (const line of sourceText.split("\n")) {
+    const match = line.match(/^\s*[-*]\s*([^:]+):\s*(\S+)\s*$/);
+    if (match) links.push({ label: match[1].trim().toLowerCase(), url: match[2].trim() });
+  }
+  return links;
+}
+
 function collectCarouselItemColorSections(entry, preset) {
   const sections = new Map();
   Object.entries(entry).forEach(([key, value]) => {
@@ -1336,6 +1359,7 @@ function resolveSketchbookSourceSlice(entry, source) {
     title: entry.title || "untitled",
     subtitle: entry.subtitle || "",
     description: entry.description || "",
+    links: parseSliceLinks(entry.links),
   };
   const resolvedColors = resolveSliceColors(colorConfig, defaultColors);
 
