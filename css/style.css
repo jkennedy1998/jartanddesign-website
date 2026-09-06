@@ -371,20 +371,29 @@ footer.site .tg-shell {
   align-items: baseline;
   gap: 18px;
   margin: 12px 0 2px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid color-mix(in srgb, var(--slice-desc-color, #787d8b) 40%, transparent);
 }
 .portfolio-slice-link {
-  font-weight: 80;
+  font-weight: 160;
   font-size: 13px;
   letter-spacing: 0.08em;
   text-transform: lowercase;
   text-decoration: none;
-  color: var(--slice-title-color, inherit);
+  color: var(--slice-subtitle-color, inherit);
   padding: 0;
   border: none;
-  transition: color 220ms ease;
+  cursor: pointer;
+  transition: color 220ms ease, font-weight 220ms ease;
 }
-.portfolio-slice.is-active .portfolio-slice-link:hover {
-  color: var(--slice-subtitle-color, inherit);
+.portfolio-slice-links:has(.portfolio-slice-link:hover) .portfolio-slice-link:not(:hover) {
+  color: var(--slice-desc-color, inherit);
+  font-weight: 80;
+}
+.portfolio-slice-link:hover,
+.portfolio-slice-link:active {
+  color: var(--slice-title-color, inherit);
+  font-weight: 320;
 }
 .portfolio-slice-description-row {
   display: grid;
