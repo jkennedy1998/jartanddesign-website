@@ -368,8 +368,9 @@ footer.site .tg-shell {
 .portfolio-slice-links {
   display: flex;
   flex-wrap: wrap;
-  gap: 12px;
-  margin: 14px 0 4px;
+  align-items: baseline;
+  gap: 18px;
+  margin: 12px 0 2px;
 }
 .portfolio-slice-link {
   font-weight: 80;
@@ -378,13 +379,12 @@ footer.site .tg-shell {
   text-transform: lowercase;
   text-decoration: none;
   color: var(--slice-title-color, inherit);
-  border: 1px solid var(--slice-subtitle-color, currentColor);
-  padding: 4px 14px;
-  transition: color 220ms ease, background-color 220ms ease;
+  padding: 0;
+  border: none;
+  transition: color 220ms ease;
 }
 .portfolio-slice.is-active .portfolio-slice-link:hover {
-  background: var(--slice-subtitle-color, transparent);
-  color: var(--slice-background, inherit);
+  color: var(--slice-subtitle-color, inherit);
 }
 .portfolio-slice-description-row {
   display: grid;
