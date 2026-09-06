@@ -1,7 +1,7 @@
 # entry-data
 
 ## title
-Chainsaw in the Bag
+Chainsaw and the Bag
 ## subtitle
 after effects, photoshop, watercolor pencils on paper
 ## description

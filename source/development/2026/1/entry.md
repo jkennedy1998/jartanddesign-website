@@ -1,27 +1,16 @@
 # entry-data
 
 ## title
-Development
+Thaum Painter
+## subtitle
+rust, ascii art, creative tool
+## description
+Thaum Painter is a painting program for ASCII art — a grid of characters instead of pixels. It ships with a full toolbox (brush, text, move, erase, stamp, fill, lasso, picker), a live camera with perspective for framing pieces, and portable save files. Built in Rust on top of my thaum-renderer engine, running natively on Linux, Windows, and Mac. Free and open source under GPLv2+.
 ## preset
-custom
+single-media
 ## colors
-- title: 120a1a
+- title: e0e8d0
 - subtitle: e36325
-- description: c4702b
-- background: feffe5
-- brightness: light
-
-## html
-<div class="portfolio-status-shell">
-  <pre class="portfolio-status-mark portfolio-status-mark-panel" data-interactive-ascii="true">#┏┓#################################
-#┣┹┬─────────┐######################
-###│ _______ │####             #####
-###│ ##▓███▓ │###  in-progress  ####
-###│ ^^   █# │###               ####
-###│ __   █# │####*##########*######
-##*│ +█_ _█/ │###               ####
-###│ ‘0▓██╱  │###  come back    ####
-###│         │###    later!     ####
-###└─────────┴┐###             #####
-#*###########33###*##########*######</pre>
-</div>
+- description: 787d8b
+- background: 120a1a
+- brightness: dark
