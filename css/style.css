@@ -370,7 +370,7 @@ footer.site .tg-shell {
   flex-wrap: wrap;
   align-items: baseline;
   gap: 18px;
-  margin: 12px 0 2px;
+  margin: 12px 0 26px;
   padding-bottom: 10px;
   border-bottom: 1px solid color-mix(in srgb, var(--slice-desc-color, #787d8b) 40%, transparent);
 }
