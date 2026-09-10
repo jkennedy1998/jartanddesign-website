@@ -133,10 +133,16 @@ body.has-portfolio-status-page main {
   align-items: center;
   background: var(--portfolio-page-background, var(--bg));
 }
+/* The download page sits on the site's cream ground. Its first Painter slice
+   keeps its authored dark-blue panel color. */
 html:has(.portfolio-page[data-portfolio-page="thaum-painter"]),
 body:has(.portfolio-page[data-portfolio-page="thaum-painter"]),
 body:has(.portfolio-page[data-portfolio-page="thaum-painter"]) main {
-  background: #120A1A;
+  background: #FEFFE5;
+}
+/* The download page is self-contained; omit the shared title/navigation bar. */
+body:has(.portfolio-page[data-portfolio-page="thaum-painter"]) header.site {
+  display: none;
 }
 body.has-portfolio-status-page .portfolio-page,
 body.has-portfolio-status-page .portfolio-slices,

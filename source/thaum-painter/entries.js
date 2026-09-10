@@ -1,8 +1,8 @@
 window.PORTFOLIO_PAGE_SOURCE = {
   "thaum-painter": [
     {
-      mediaDir: "source/thaum-painter/2026/1/",
-      mediaFiles: {"images":["source/thaum-painter/2026/1/image-1.png"],"videos":[]},
+      mediaDir: "/source/thaum-painter/2026/1/",
+      mediaFiles: {"images":["/source/thaum-painter/2026/1/image-1.png"],"videos":[]},
       sourceText: `# entry-data
 
 ## title
@@ -37,8 +37,8 @@ single-media
 `
     },
     {
-      mediaDir: "source/thaum-painter/2026/2/",
-      mediaFiles: {"images":["source/thaum-painter/2026/2/image-1.png","source/thaum-painter/2026/2/image-2.png","source/thaum-painter/2026/2/image-3.png"],"videos":[]},
+      mediaDir: "/source/thaum-painter/2026/2/",
+      mediaFiles: {"images":["/source/thaum-painter/2026/2/image-1.png","/source/thaum-painter/2026/2/image-2.png","/source/thaum-painter/2026/2/image-3.png"],"videos":[]},
       sourceText: `# entry-data
 
 ## title
