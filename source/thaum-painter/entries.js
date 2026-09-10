@@ -21,7 +21,8 @@ if you find a bug or something odd, let me know! there are debug logs that are m
 happy painting!
 - J
 ## release notes
-v0.1.4 · **Full Changelog**: https://github.com/jkennedy1998/thaum-painter/compare/v0.1.3...v0.1.4
+v0.1.5 · **Full Changelog**: https://github.com/jkennedy1998/thaum-painter/compare/v0.1.4...v0.1.5
+
 ## preset
 single-media
 ## links
