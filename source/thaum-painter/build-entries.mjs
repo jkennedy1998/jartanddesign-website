@@ -24,9 +24,9 @@ for (const yearDir of years) {
   for (const sliceDir of sliceDirs) {
     if (!sliceDir.isDirectory() || !numericName.test(sliceDir.name)) continue;
     const order = Number(sliceDir.name);
-    // Portfolio pages can be served from nested routes such as /thaum-painter/.
-    // Media URLs must therefore be site-root-relative rather than route-relative.
-    const mediaDir = `/source/thaum-painter/${yearDir.name}/${sliceDir.name}/`;
+    // Match the other portfolio entry sources: media stays relative to the
+    // site root. The nested page supplies its document base separately.
+    const mediaDir = `source/thaum-painter/${yearDir.name}/${sliceDir.name}/`;
     const folderPath = path.join(yearPath, sliceDir.name);
     const entryPath = path.join(folderPath, 'entry.md');
     let sourceText;
