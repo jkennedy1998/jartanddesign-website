@@ -140,10 +140,6 @@ body:has(.portfolio-page[data-portfolio-page="thaum-painter"]),
 body:has(.portfolio-page[data-portfolio-page="thaum-painter"]) main {
   background: #FEFFE5;
 }
-/* The download page is self-contained; omit the shared title/navigation bar. */
-body:has(.portfolio-page[data-portfolio-page="thaum-painter"]) header.site {
-  display: none;
-}
 body.has-portfolio-status-page .portfolio-page,
 body.has-portfolio-status-page .portfolio-slices,
 body.has-portfolio-status-page .portfolio-slice,
