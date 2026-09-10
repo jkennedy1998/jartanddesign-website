@@ -14,9 +14,7 @@ Thaum Painter is a painting program for ASCII art — a grid of characters inste
 ## preset
 single-media
 ## links
-- linux: https://github.com/jkennedy1998/thaum-painter/releases/latest/download/thaum-painter-linux.tar.gz
-- windows: https://github.com/jkennedy1998/thaum-painter/releases/latest/download/thaum-painter-windows.zip
-- mac: https://github.com/jkennedy1998/thaum-painter/releases/latest/download/thaum-painter-mac.zip
+- thaum painter: /thaum-painter/
 ## colors
 - title: e0e8d0
 - subtitle: e36325

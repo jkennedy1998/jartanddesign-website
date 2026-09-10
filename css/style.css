@@ -131,6 +131,12 @@ body.has-portfolio-status-page {
 body.has-portfolio-status-page main {
   display: flex;
   align-items: center;
+  background: var(--portfolio-page-background, var(--bg));
+}
+html:has(.portfolio-page[data-portfolio-page="thaum-painter"]),
+body:has(.portfolio-page[data-portfolio-page="thaum-painter"]),
+body:has(.portfolio-page[data-portfolio-page="thaum-painter"]) main {
+  background: #120A1A;
 }
 body.has-portfolio-status-page .portfolio-page,
 body.has-portfolio-status-page .portfolio-slices,
@@ -363,6 +369,8 @@ footer.site .tg-shell {
   display: flex;
   flex-direction: column;
   gap: 0;
+  width: min(100%, 52ch);
+  min-width: 0;
   max-width: 52ch;
 }
 .portfolio-slice-links {
@@ -395,10 +403,25 @@ footer.site .tg-shell {
   color: var(--slice-title-color, inherit);
   font-weight: 320;
 }
+.portfolio-slice-release-notes {
+  margin: 0 0 12px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
 .portfolio-slice-description-row {
   display: grid;
   grid-template-columns: 5ch minmax(0, 1fr);
   align-items: start;
+}
+.portfolio-slice-description-row.is-static {
+  display: block;
+  min-width: 0;
+  max-width: 100%;
+}
+.portfolio-slice-description-row.is-static .portfolio-slice-description-preview {
+  max-width: 100%;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
 }
 .portfolio-slice-toggle {
   grid-column: 1;

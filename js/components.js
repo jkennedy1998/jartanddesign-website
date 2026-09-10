@@ -817,6 +817,7 @@ function buildPortfolioSlice(slice, index) {
 
   const descriptionRow = document.createElement("div");
   descriptionRow.className = "portfolio-slice-description-row";
+  const descriptionIsStatic = slice.descriptionMode === "static";
 
   const toggle = document.createElement("button");
   toggle.type = "button";
@@ -950,12 +951,17 @@ function buildPortfolioSlice(slice, index) {
     descriptionState.frame = requestAnimationFrame(step);
   };
 
-  section.__renderDescription = renderDescription;
-  toggle.addEventListener("click", () => {
-    renderDescription({ expanded: !section.classList.contains("is-expanded"), animate: true });
-  });
-
-  descriptionRow.append(toggle, preview, extra);
+  if (descriptionIsStatic) {
+    descriptionRow.classList.add("is-static");
+    setRenderedLabel(preview, descriptionState.text);
+    descriptionRow.append(preview);
+  } else {
+    section.__renderDescription = renderDescription;
+    toggle.addEventListener("click", () => {
+      renderDescription({ expanded: !section.classList.contains("is-expanded"), animate: true });
+    });
+    descriptionRow.append(toggle, preview, extra);
+  }
 
   const appendStandardCopy = () => {
     const copy = document.createElement("div");
@@ -973,11 +979,17 @@ function buildPortfolioSlice(slice, index) {
       }
       copy.append(linksRow);
     }
+    if (slice.releaseNotes) {
+      const releaseNotes = document.createElement("p");
+      releaseNotes.className = "portfolio-slice-release-notes portfolio-slice-description";
+      releaseNotes.textContent = `release notes — ${slice.releaseNotes}`;
+      copy.append(releaseNotes);
+    }
     copy.append(descriptionRow);
     inner.append(copy);
   };
 
-  if (slice.type === "single-media") {
+  if (slice.type === "single-media" && slice.media?.src) {
     const mediaWrap = document.createElement("div");
     mediaWrap.className = "portfolio-slice-media-wrap";
     const image = document.createElement("img");
@@ -1359,6 +1371,8 @@ function resolveSketchbookSourceSlice(entry, source) {
     title: entry.title || "untitled",
     subtitle: entry.subtitle || "",
     description: entry.description || "",
+    descriptionMode: (entry["description mode"] || "").trim().toLowerCase(),
+    releaseNotes: entry["release notes"] || "",
     links: parseSliceLinks(entry.links),
   };
   const resolvedColors = resolveSliceColors(colorConfig, defaultColors);
