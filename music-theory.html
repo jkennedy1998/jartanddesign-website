@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Music Theory — J Art &amp; Design</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="music-theory/music-theory.css">
+</head>
+<body>
+  <header class="site"></header>
+  <main class="music-theory-page">
+    <section class="portfolio-slice music-theory-slice is-active" aria-labelledby="music-theory-title">
+      <div class="portfolio-slice-inner music-theory-shell">
+        <div class="music-theory-copy">
+          <p id="music-theory-title" class="music-theory-title">intervals interface</p>
+          <p class="music-theory-help">scale sheets but dynamic to instrument, instrument tuning, scale shape, and root note. i made this for me, because i jam over these diagrams all the time and i was getting sick of making them.</p>
+        </div>
+        <div class="music-theory-selectors" aria-label="Scale controls">
+          <div class="music-selector" data-root-control></div>
+          <div class="music-selector" data-scale-control></div>
+          <button class="music-random-button" type="button" data-randomize>random</button>
+        </div>
+        <div class="music-theory-board" data-fretboard aria-label="Fretboard"></div>
+        <div class="music-theory-keyboard" data-keyboard aria-label="Piano"></div>
+      </div>
+    </section>
+  </main>
+  <footer class="site"></footer>
+  <script src="js/components.js"></script>
+  <script src="music-theory/music-theory.js"></script>
+</body>
+</html>

@@ -1,0 +1,337 @@
+.music-theory-page {
+  flex: 1;
+  display: flex;
+  background: #120A1A;
+}
+
+.music-theory-slice {
+  width: 100%;
+  background: #120A1A;
+  color: #FEFFE5;
+}
+
+.music-theory-shell {
+  gap: 2rem;
+  padding-top: 3rem;
+  padding-bottom: 3rem;
+}
+
+.music-theory-copy {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.music-theory-title {
+  color: #FEFFE5;
+  font-weight: 320;
+}
+
+.music-theory-help {
+  color: #AC9D7C;
+  font-weight: 160;
+}
+
+.music-selector-label,
+.music-fret-labels,
+.music-string-tuning {
+  color: #AC9D7C;
+  font-weight: 80;
+}
+
+.music-theory-selectors {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.music-random-button {
+  justify-self: start;
+  margin-left: 12ch;
+  border: 0;
+  background: transparent;
+  padding: 0.5rem 1ch;
+  color: #FEFFE5;
+  font: inherit;
+  font-weight: 160;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.music-random-button:hover,
+.music-random-button:focus-visible {
+  color: #E36325;
+  font-weight: 320;
+  outline: none;
+}
+
+.music-selector {
+  display: grid;
+  grid-template-columns: 12ch 3ch 18ch 3ch;
+  align-items: center;
+}
+
+.music-selector[data-root-control] {
+  grid-template-columns: 12ch 3ch 4ch 3ch;
+}
+
+.music-selector-step,
+.music-tuning-step,
+.music-fret-note,
+.music-piano-key {
+  border: 0;
+  background: transparent;
+  padding: 0;
+  font: inherit;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.music-selector-step,
+.music-tuning-step {
+  color: #AC9D7C;
+  font-weight: 80;
+}
+
+.music-selector-step {
+  width: 3ch;
+  text-align: center;
+}
+
+.music-selector-step:hover,
+.music-selector-step:focus-visible,
+.music-tuning-step:hover,
+.music-tuning-step:focus-visible {
+  color: #E36325;
+  font-weight: 160;
+  outline: none;
+}
+
+.music-selector-value {
+  padding: 0 1ch;
+  color: #FEFFE5;
+  font-weight: 160;
+}
+
+.music-root-value {
+  font-weight: 320;
+}
+
+.music-theory-board,
+.music-theory-keyboard {
+  min-width: 0;
+  overflow-x: auto;
+}
+
+.music-theory-board {
+  padding-bottom: 0.5rem;
+}
+
+.music-fret-row {
+  display: grid;
+  grid-template-columns: 7ch repeat(12, 3ch) 1ch;
+  min-width: 44ch;
+  min-height: 1em;
+  align-items: center;
+  line-height: 1;
+}
+
+.music-fret-labels span {
+  text-align: center;
+}
+
+.music-string-tuning {
+  display: grid;
+  grid-template-columns: 1ch 3ch 1ch;
+  align-items: center;
+}
+
+.music-string-label {
+  color: var(--music-note-color);
+  text-align: center;
+}
+
+.music-string-label.is-on {
+  font-weight: 320;
+}
+
+.music-string-label.is-off {
+  font-weight: 80;
+}
+
+.music-fret-note {
+  position: relative;
+  width: 100%;
+  min-height: 1em;
+  padding-left: 1ch;
+  color: var(--music-note-color);
+  text-align: left;
+}
+
+.music-fret-note::before {
+  content: "│";
+  position: absolute;
+  left: 0;
+  color: #AC9D7C;
+  font-weight: 80;
+}
+
+.music-fret-end {
+  color: #AC9D7C;
+  font-weight: 80;
+}
+
+.music-fret-note.is-open-marker::before {
+  color: var(--music-marker-color);
+  font-weight: 640;
+}
+
+.music-fret-note.is-harmonic::after {
+  content: "│";
+  position: absolute;
+  top: 0;
+  left: 100%;
+  z-index: 1;
+  color: var(--music-marker-color);
+  font-weight: 640;
+}
+
+.music-fret-note.is-off {
+  color: transparent;
+}
+
+.music-fret-note.is-off:hover,
+.music-fret-note.is-off:focus-visible {
+  color: var(--music-note-color);
+  font-weight: 80;
+  outline: none;
+}
+
+.music-fret-note.is-on,
+.music-piano-key.is-on {
+  color: var(--music-note-color);
+  font-weight: 320;
+}
+
+.music-fret-note.is-on:hover,
+.music-fret-note.is-on:focus-visible,
+.music-piano-key.is-on:hover,
+.music-piano-key.is-on:focus-visible {
+  font-weight: 640;
+  outline: none;
+}
+
+.music-piano-frame {
+  display: grid;
+  grid-template-columns: repeat(43, 1ch);
+  grid-template-rows: repeat(4, 1em);
+  width: 43ch;
+  min-width: 43ch;
+  line-height: 1;
+}
+
+.music-piano-row,
+.music-piano-border {
+  display: contents;
+}
+
+.music-piano-border-segment,
+.music-piano-key-end {
+  color: #AC9D7C;
+  font-weight: 80;
+  line-height: 1;
+  white-space: pre;
+}
+
+.music-piano-border-segment.is-on,
+.music-piano-key-end.is-on {
+  color: var(--music-note-color);
+  font-weight: 320;
+}
+
+.music-piano-border-segment.is-hovered,
+.music-piano-key-end.is-hovered {
+  color: var(--music-note-color);
+  font-weight: 640;
+}
+
+.music-piano-key {
+  min-height: 0;
+  color: var(--music-note-color);
+  line-height: 1;
+  text-align: center;
+}
+
+.music-piano-sharp {
+  z-index: 1;
+  height: 2em;
+  background: #120A1A;
+  white-space: pre;
+}
+
+.music-piano-natural {
+  display: grid;
+  grid-template-columns: 1ch 2ch;
+  grid-template-rows: repeat(2, 1em);
+  height: 2em;
+}
+
+.music-piano-natural::before {
+  content: "│\A│";
+  grid-column: 1;
+  grid-row: 1 / span 2;
+  color: #AC9D7C;
+  font-weight: 80;
+  line-height: 1;
+  white-space: pre;
+}
+
+.music-piano-natural-label {
+  grid-column: 1 / span 3;
+  grid-row: 2;
+  text-align: center;
+}
+
+.music-piano-natural.is-on::before {
+  color: var(--music-note-color);
+  font-weight: 320;
+}
+
+.music-piano-natural.is-hovered {
+  color: var(--music-note-color);
+  font-weight: 640;
+}
+
+.music-piano-natural.is-hovered::before {
+  color: var(--music-note-color);
+  font-weight: 640;
+}
+
+.music-piano-natural.is-off {
+  color: transparent;
+}
+
+.music-piano-natural.is-off:hover,
+.music-piano-natural.is-off:focus-visible {
+  color: var(--music-note-color);
+  font-weight: 640;
+  outline: none;
+}
+
+.music-piano-sharp.is-off {
+  color: #AC9D7C;
+  font-weight: 80;
+}
+
+.music-piano-sharp.is-off:hover,
+.music-piano-sharp.is-off:focus-visible {
+  color: var(--music-note-color);
+  font-weight: 640;
+  outline: none;
+}
+
+@media (max-width: 860px) {
+  .music-theory-shell {
+    gap: 1.5rem;
+    padding-top: 2rem;
+    padding-bottom: 2rem;
+  }
+}
