@@ -1,0 +1,185 @@
+/* thaum-mono subpage styles — loaded only by thaum-mono.html */
+
+@font-face {
+  font-family: "ThaumMonoVF";
+  src: url("../fonts/thaum-mono/ThaumMono-VF.woff2") format("woff2");
+  font-weight: 80 640;
+  font-display: swap;
+}
+
+.tm-slice,
+.tm-section {
+  font-family: "ThaumMono", monospace;
+  color: var(--slice-desc-color, #787d8b);
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.tm-tagline {
+  font-weight: 80;
+  font-size: 14px;
+  letter-spacing: 0.06em;
+  color: var(--slice-subtitle-color, #e36325);
+  margin: 0 0 1.2em;
+}
+
+.tm-heading {
+  font-family: "ThaumMono", monospace;
+  font-weight: 160;
+  font-size: 16px;
+  letter-spacing: 0.05em;
+  color: var(--slice-subtitle-color, #e36325);
+  margin: 0 0 0.8em;
+}
+
+.tm-copy {
+  font-weight: 160;
+  font-size: 13px;
+  line-height: 1.65;
+  margin: 0.6em 0;
+}
+
+.tm-section + .tm-section {
+  margin-top: 2.6em;
+}
+
+/* weight morph helpers */
+.tm-morph-vf {
+  font-family: "ThaumMonoVF", "ThaumMono", monospace;
+  font-variation-settings: "wght" 320;
+  transition: font-variation-settings 0.5s ease;
+}
+
+/* type tester */
+.tm-tester-line {
+  font-family: "ThaumMono", monospace;
+  font-weight: 320;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--slice-desc-color, #787d8b);
+  margin: 0 0 8px;
+}
+
+.tm-tester-echo {
+  border: 1px solid rgba(224, 232, 208, 0.22);
+  border-radius: 6px;
+  padding: 14px 16px;
+  min-height: 1.5em;
+  outline: none;
+  white-space: pre-wrap;
+  word-break: break-word;
+  color: var(--slice-title-color, #e0e8d0);
+  font-size: 13px;
+  line-height: 1.65;
+  caret-color: #e36325;
+}
+
+.tm-tester-echo:focus-visible {
+  border-color: var(--slice-subtitle-color, #e36325);
+}
+
+.tm-controls {
+  display: flex;
+  gap: 28px;
+  flex-wrap: wrap;
+  margin: 14px 0 18px;
+}
+
+.tm-control {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 12px;
+  letter-spacing: 0.05em;
+  color: var(--slice-desc-color, #787d8b);
+}
+
+.tm-control input[type="range"] {
+  accent-color: #e36325;
+  width: 190px;
+}
+
+.tm-readout {
+  min-width: 44px;
+  color: var(--slice-title-color, #e0e8d0);
+  font-size: 12px;
+}
+
+.tm-weights-row span[data-w] {
+  display: inline-block;
+  margin-right: 18px;
+}
+
+/* glyph sheet */
+.tm-morph-sheet {
+  font-family: "ThaumMono", monospace;
+  font-size: 13px;
+  border: 1px solid rgba(224, 232, 208, 0.18);
+  border-radius: 8px;
+  padding: 12px 16px;
+  background: rgba(0, 0, 0, 0.28);
+}
+
+.tm-sheet-group + .tm-sheet-group {
+  margin-top: 10px;
+}
+
+.tm-sheet-row {
+  white-space: pre;
+  line-height: 1.65;
+}
+
+.tm-morph-sheet .tm-char {
+  font-family: "ThaumMonoVF", "ThaumMono", monospace;
+  font-variation-settings: "wght" 320;
+  transition: font-variation-settings 0.3s ease, color 0.3s ease;
+  cursor: default;
+}
+
+.tm-morph-sheet .tm-char:hover {
+  font-variation-settings: "wght" 640;
+  color: var(--slice-subtitle-color, #e36325);
+}
+
+.tm-sheet-label {
+  display: block;
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  color: rgba(224, 232, 208, 0.45);
+  margin: 2px 0 1px;
+}
+
+/* buttons */
+.tm-button {
+  font-family: "ThaumMono", monospace;
+  font-weight: 160;
+  font-size: 13px;
+  letter-spacing: 0.04em;
+  color: var(--slice-title-color, #e0e8d0);
+  background: transparent;
+  border: 1px solid rgba(224, 232, 208, 0.35);
+  border-radius: 6px;
+  padding: 8px 16px;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-block;
+  transition: border-color 0.2s ease, color 0.2s ease;
+}
+
+.tm-button:hover {
+  border-color: var(--slice-subtitle-color, #e36325);
+  color: var(--slice-subtitle-color, #e36325);
+}
+
+.tm-button.is-primary {
+  border-color: var(--slice-subtitle-color, #e36325);
+  color: var(--slice-subtitle-color, #e36325);
+  font-weight: 320;
+}
+
+.tm-download-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin: 12px 0;
+}

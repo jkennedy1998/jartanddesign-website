@@ -10,6 +10,8 @@ const NAV = [
 
 const SITE_NAV_BREAKPOINT = "(max-width: 860px)";
 const FOOTER_CTA_WORDS = ["talk.", "design.", "make art.", "collaborate.", "create.", "develop."];
+// project detail pages nested under a category but not themselves in NAV
+const NAV_ACTIVE_ALIAS = { "thaum-painter": "development", "thaum-mono": "development" };
 let siteHeaderCompact = null;
 let siteHeaderResizeHandler = null;
 
@@ -20,7 +22,8 @@ function normalizePagePath(pathname = "/") {
 }
 
 function currentPage() {
-  return normalizePagePath(location.pathname);
+  const page = normalizePagePath(location.pathname);
+  return NAV_ACTIVE_ALIAS[page] || page;
 }
 
 function renderHeader() {
