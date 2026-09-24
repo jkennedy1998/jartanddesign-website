@@ -13,16 +13,20 @@ custom
 
 ## html
 <div class="tm-section">
-  <h3 class="tm-heading">weight ride — the variable font</h3>
+  <h3 class="tm-heading">4 weights, 12x16 monospace, bitmap(ish)</h3>
   <p class="tm-tester-line" data-tm-tester data-tm-text="the quick brown fox jumps over the lazy dog 0123456789 ?!#%&amp;">the quick brown fox jumps over the lazy dog 0123456789 ?!#%&amp;</p>
   <div class="tm-tester-echo tm-morph-vf" data-tm-echo spellcheck="false" contenteditable="true">the quick brown fox jumps over the lazy dog 0123456789 ?!#%&amp;</div>
-  <div class="tm-controls">
-    <label class="tm-control">weight
-      <input type="range" min="80" max="640" step="20" value="320" data-tm-weight>
-      <span class="tm-readout" data-tm-weight-out>320</span>
-    </label>
+  <div class="tm-slider-block">
+    <div class="tm-slider-dots" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
+    <input type="range" min="0" max="3" step="1" value="2" data-tm-weight aria-label="weight">
+    <div class="tm-slider-ticks">
+      <span data-tm-tick data-w="80">80</span>
+      <span data-tm-tick data-w="160">160</span>
+      <span data-tm-tick data-w="320" class="is-active">320</span>
+      <span data-tm-tick data-w="640">640</span>
+    </div>
+    <span class="tm-readout" data-tm-weight-out>W320 · regular</span>
   </div>
   <p class="tm-tester-line is-static" data-tm-weights-row></p>
-  <h3 class="tm-heading">glyph sheet — hover to push weight</h3>
   <div class="tm-morph-sheet" data-tm-sheet></div>
 </div>

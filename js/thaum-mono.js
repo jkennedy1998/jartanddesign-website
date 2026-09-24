@@ -1,8 +1,19 @@
-/* thaum-mono subpage interactivity: weight rider and glyph sheet.
+/* thaum-mono subpage interactivity: snapping weight slider + glyph sheet.
    Loaded after components.js, which builds the slices asynchronously,
-   so we wait for the containers. */
+   so we wait for the containers.
+
+   Weight is one of the four SET weights (80/160/320/640) — the slider is
+   a 4-point snap control, not a smooth variable-font morph. Everything is
+   driven through the static @font-face weights (family "ThaumMono"). */
 (function () {
   "use strict";
+
+  const WEIGHTS = [
+    [80, "hairline"],
+    [160, "light"],
+    [320, "regular"],
+    [640, "heavy"],
+  ];
 
   const SHEET_GROUPS = [
     ["ascii", "abcdefghijklmnopqrstuvwxyz 0123456789 ?!#%&$*@"],
@@ -35,11 +46,11 @@
   function buildWeightsRow(root) {
     if (!root) return;
     const fragment = document.createDocumentFragment();
-    [[80, "W80"], [160, "W160"], [320, "W320"], [640, "W640"]].forEach(([weight, label]) => {
+    WEIGHTS.forEach(([weight, name]) => {
       const span = document.createElement("span");
       span.dataset.w = String(weight);
       span.style.fontWeight = String(weight);
-      span.textContent = `${weight} — the quick brown fox 0123456789`;
+      span.textContent = `W${weight} ${name} — the quick brown fox 0123456789`;
       fragment.append(span, document.createElement("br"));
     });
     root.replaceChildren(fragment);
@@ -72,25 +83,37 @@
     });
   }
 
-  function initTester(echo, weightInput, weightOut) {
-    if (!echo || !weightInput) return;
+  function initWeightSnap(echo, weightInput, weightOut) {
+    if (!weightInput) return;
+    const ticks = [...document.querySelectorAll("[data-tm-tick]")];
+    const targets = [echo, ...document.querySelectorAll(".tm-morph-sheet .tm-char")];
+
     const apply = () => {
-      const weight = Number(weightInput.value);
-      echo.style.fontVariationSettings = `'wght' ${weight}`;
-      if (weightOut) weightOut.textContent = String(weight);
+      const index = Math.min(WEIGHTS.length - 1, Math.max(0, Number(weightInput.value) | 0));
+      const [weight, name] = WEIGHTS[index];
+      targets.forEach((node) => {
+        if (!node) return;
+        node.style.fontWeight = String(weight);
+        node.style.fontVariationSettings = "";
+      });
+      ticks.forEach((tick) => {
+        tick.classList.toggle("is-active", Number(tick.dataset.w) === weight);
+      });
+      if (weightOut) weightOut.textContent = `W${weight} · ${name}`;
     };
+
     weightInput.addEventListener("input", apply);
     apply();
   }
 
   function init() {
     buildWeightsRow(document.querySelector("[data-tm-weights-row]"));
-    initTester(
+    buildSheet(document.querySelector("[data-tm-sheet]"));
+    initWeightSnap(
       document.querySelector("[data-tm-echo]"),
       document.querySelector("[data-tm-weight]"),
       document.querySelector("[data-tm-weight-out]"),
     );
-    buildSheet(document.querySelector("[data-tm-sheet]"));
   }
 
   function start() {

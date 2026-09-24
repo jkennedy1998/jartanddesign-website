@@ -1,11 +1,6 @@
-/* thaum-mono subpage styles — loaded only by thaum-mono.html */
-
-@font-face {
-  font-family: "ThaumMonoVF";
-  src: url("../fonts/thaum-mono/ThaumMono-VF.woff2") format("woff2");
-  font-weight: 80 640;
-  font-display: swap;
-}
+/* thaum-mono subpage styles — loaded only by thaum-mono.html.
+   Type is served as four SET static weights (@font-face in style.css,
+   family "ThaumMono", weights 80/160/320/640) — no smooth VF morphing. */
 
 .tm-slice,
 .tm-section {
@@ -43,11 +38,99 @@
   margin-top: 2.6em;
 }
 
-/* weight morph helpers */
+/* weight handling — four SET static weights, snapped, never smooth-morphed.
+   font-weight picks one of the four @font-face statics from style.css. */
 .tm-morph-vf {
-  font-family: "ThaumMonoVF", "ThaumMono", monospace;
-  font-variation-settings: "wght" 320;
-  transition: font-variation-settings 0.5s ease;
+  font-family: "ThaumMono", monospace;
+  font-weight: 320;
+}
+
+/* snapping weight slider — 4 points, 80/160/320/640 */
+.tm-slider-block {
+  position: relative;
+  margin: 18px 0 10px;
+}
+
+.tm-slider-block input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  display: block;
+  width: 100%;
+  height: 28px;
+  background: transparent;
+  cursor: pointer;
+  margin: 0;
+}
+
+.tm-slider-block input[type="range"]:focus-visible {
+  outline: 1px dotted rgba(227, 99, 37, 0.6);
+  outline-offset: 2px;
+}
+
+.tm-slider-block input[type="range"]::-webkit-slider-runnable-track {
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(224, 232, 208, 0.22);
+}
+
+.tm-slider-block input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  margin-top: -6px;
+  border-radius: 4px;
+  background: #e36325;
+  border: 2px solid #120a1a;
+  box-shadow: 0 0 0 1px #e36325;
+}
+
+.tm-slider-block input[type="range"]::-moz-range-track {
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(224, 232, 208, 0.22);
+}
+
+.tm-slider-block input[type="range"]::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  background: #e36325;
+  border: 2px solid #120a1a;
+  box-shadow: 0 0 0 1px #e36325;
+}
+
+/* the 4 weight points on the track; inset 8px each side to match thumb travel */
+.tm-slider-dots {
+  position: absolute;
+  top: 12px;
+  left: 8px;
+  right: 8px;
+  height: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  pointer-events: none;
+}
+
+.tm-slider-dots span {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: rgba(224, 232, 208, 0.55);
+}
+
+.tm-slider-ticks {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 4px;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  color: rgba(224, 232, 208, 0.45);
+}
+
+.tm-slider-ticks span.is-active {
+  color: var(--slice-subtitle-color, #e36325);
 }
 
 /* type tester */
@@ -78,28 +161,10 @@
   border-color: var(--slice-subtitle-color, #e36325);
 }
 
-.tm-controls {
-  display: flex;
-  gap: 28px;
-  flex-wrap: wrap;
-  margin: 14px 0 18px;
-}
-
-.tm-control {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-size: 12px;
-  letter-spacing: 0.05em;
-  color: var(--slice-desc-color, #787d8b);
-}
-
-.tm-control input[type="range"] {
-  accent-color: #e36325;
-  width: 190px;
-}
-
 .tm-readout {
+  display: block;
+  text-align: right;
+  margin-top: 2px;
   min-width: 44px;
   color: var(--slice-title-color, #e0e8d0);
   font-size: 12px;
@@ -107,10 +172,9 @@
 
 .tm-weights-row span[data-w] {
   display: inline-block;
-  margin-right: 18px;
 }
 
-/* glyph sheet */
+/* glyph sheet — a tidy specimen grid: one bordered cell per glyph */
 .tm-morph-sheet {
   font-family: "ThaumMono", monospace;
   font-size: 13px;
@@ -125,20 +189,27 @@
 }
 
 .tm-sheet-row {
-  white-space: pre;
-  line-height: 1.65;
+  display: grid;
+  grid-template-columns: repeat(24, 1fr);
 }
 
 .tm-morph-sheet .tm-char {
-  font-family: "ThaumMonoVF", "ThaumMono", monospace;
-  font-variation-settings: "wght" 320;
-  transition: font-variation-settings 0.3s ease, color 0.3s ease;
+  display: block;
+  text-align: center;
+  padding: 5px 0 4px;
+  color: var(--slice-desc-color, #787d8b);
+  border: 1px solid rgba(224, 232, 208, 0.08);
+  margin: -1px 0 0 -1px;
   cursor: default;
 }
 
 .tm-morph-sheet .tm-char:hover {
-  font-variation-settings: "wght" 640;
   color: var(--slice-subtitle-color, #e36325);
+  background: rgba(227, 99, 37, 0.08);
+}
+
+.tm-morph-sheet .tm-char:last-child {
+  margin-right: -1px;
 }
 
 .tm-sheet-label {

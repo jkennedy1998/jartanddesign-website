@@ -23,7 +23,7 @@ custom
     without breaking the layout.
   </p>
   <p class="tm-copy">
-    This page is a specimen and a playground. Ride the weight slider, hover
-    the glyph sheet — and grab the fonts at the bottom.
+    This page is a specimen and a playground. Snap the weight slider through
+    the four set weights, type in the tester, and grab the fonts at the bottom.
   </p>
 </div>
