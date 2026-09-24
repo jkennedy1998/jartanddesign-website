@@ -20,9 +20,9 @@ custom-with-copy
 
 ## html
 <div class="about-me-copy">
-  <p>im J. i make images, motion, typefaces, and small creative tools. i like working where visual ideas, systems, and a little bit of play overlap.</p>
-  <p>this site is a place for the things ive been learning, making, and trying to make more human. i care about work that is clear enough to use, strange enough to remember, and open enough to invite someone else in.</p>
-  <p>im always collecting references, sketching, and building the next thing that helps an idea take shape.</p>
+  <p>Hi! I'm J, a designer based out of the midwest.</p>
+  <p>I make illustration, design, and developments in my professional time, and in my me time.</p>
+  <p>Across my career I've worked in visuals for advertising, tech, and education. Through those environments I've lead and worked along production artists to build experiences rooted in thoughtful design, using forefront technology to make it happen.</p>
 </div>
 `
     },
