@@ -19,7 +19,18 @@
   const SEG = 5; /* dashes between weight points on the ascii bar */
 
   /* every glyph in the typeface, one dense typegrid block — verbatim chars */
-  const SHEET_TEXT = `ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789☺☻!#%&$*@^?/\\|+×÷±¬§¶†‡©®™¢£¥€'"\`()[]{}⟦⟧⟨⟩⟪⟫⦇⦈⸨⁅⁆‘’“”⌂⌐⌠⌡αβΓπΣσµτΦΘΩδ∞φε∩≡√ⁿ²∟₧ƒªº¿¡≈✝✞✟✠✚✛✜♁♰♱☥☦☧☨☩☪☢☣⚠☠☤⚕⚚⚗⚘♄☿♃♅♆♇⚳⚴⚵⚶⚷⚸⚹⚺⚻♈♉♊♋♌♍♎♏♐♑♒♓.,:;·•●○…⦸⨀∘∙∴∵∶∷◌◍◎◐◑◒◓◔◕◖◗◘◙◚◛◜◝◞◟◠◡◉⁖⁘⁙⁚⁛⁜⁝⁞․‥‧⁂_-–—=~∼≃≋Ξ≠‹›«»⟵⟶↔↕↜↝↞↠↢↣↤↦⇐⇑⇒⇓⇔⇚⇛⇦⇨←↑→↓►◄↨▲▼☚☛☜☝☞☟✌✍🖐🖑🖒🖓🖔🖕🖖➔➜➝➞➟➠➡➢➣➤➥➦➧➨🔺🔻━┃┏┓┗┛┣┫┳┻╋═║╔╗╚╝╠╣╦╩╬─│┌┐└┘├┤┬┴┼╞╟╡╢╤╥╧╨╪╫┍┎┑┒┕┖┙┚┝┞┟┠┡┢┥┦┧┨┩┪┭┮┯┰┱┲┵┶┷┸┹┺┽┾┿╀╁╂╃╄╅╆╇╈╉╊█▓▒░▁▂▃▄▅▆▇▉▊▋▌▍▎▏▀▐▔▕▘▝▖▗🙼🙽🙾🙿▚▞▙▛▜▟■□▢▣▪▫▤▥▦▧▨▩▬▭▮▯▰▱◰◱◲◳◧◨◩◪◫◻◼◽◾╱╲╳⎺⎻⎼⎽∎◩ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝŸÞŒŠŽŁßàáâãäåæçèéêëìíîïðñòóôõöøùúûüýÿþœšžł♪♫☼★☆✢✣✤✥✦✧✩✪✫✬✭✮✯✰✱✲✳✴✵✶✷✸✹✺✻✼✽✾✿❀❁❂❃❇❈❉❊❋♡❤❥❣❦❧💕💖💗💘💙💚💛🧡💜🖤🤍🤎💝💞💟♢◆◇◈◊⬖⬗⬘⬙❖💎☀☉☽☾🌑🌒🌓🌔🌕🌖🌗🌘🌙🌚🌛🌜☁☂☃☄☇☈☊☋☌☍⛅⛈⛆⛇⛉⛊⛋⛌⛍⛎⚡❄❅❆🌟🌠☎☏✆✉︎🖂🖃🖄🖅🖆📞📟📠📧📨📩📪📫📬📭📮🕿🖁♥♦♣♠♔♕♖♗♘♙♚♛♜♝♞♟♤♧🂠🂡🂢🂣🂤🂥🂦🂧🂨🂩🂪`;
+  const SHEET_GLYPHS = `ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789☺☻!#%&$*@^?/\\|+×÷±¬§¶†‡©®™¢£¥€'"\`()[]{}⟦⟧⟨⟩⟪⟫⦇⦈⸨⁅⁆‘’“”⌂⌐⌠⌡αβΓπΣσµτΦΘΩδ∞φε∩≡√ⁿ²∟₧ƒªº¿¡≈✝✞✟✠✚✛✜♁♰♱☥☦☧☨☩☪☢☣⚠☠☤⚕⚚⚗⚘♄☿♃♅♆♇⚳⚴⚵⚶⚷⚸⚹⚺⚻♈♉♊♋♌♍♎♏♐♑♒♓.,:;·•●○…⦸⨀∘∙∴∵∶∷◌◍◎◐◑◒◓◔◕◖◗◘◙◚◛◜◝◞◟◠◡◉⁖⁘⁙⁚⁛⁜⁝⁞․‥‧⁂_-–—=~∼≃≋Ξ≠‹›«»⟵⟶↔↕↜↝↞↠↢↣↤↦⇐⇑⇒⇓⇔⇚⇛⇦⇨←↑→↓►◄↨▲▼☚☛☜☝☞☟✌✍🖐🖑🖒🖓🖔🖕🖖➔➜➝➞➟➠➡➢➣➤➥➦➧➨🔺🔻━┃┏┓┗┛┣┫┳┻╋═║╔╗╚╝╠╣╦╩╬─│┌┐└┘├┤┬┴┼╞╟╡╢╤╥╧╨╪╫┍┎┑┒┕┖┙┚┝┞┟┠┡┢┥┦┧┨┩┪┭┮┯┰┱┲┵┶┷┸┹┺┽┾┿╀╁╂╃╄╅╆╇╈╉╊█▓▒░▁▂▃▄▅▆▇▉▊▋▌▍▎▏▀▐▔▕▘▝▖▗🙼🙽🙾🙿▚▞▙▛▜▟■□▢▣▪▫▤▥▦▧▨▩▬▭▮▯▰▱◰◱◲◳◧◨◩◪◫◻◼◽◾╱╲╳⎺⎻⎼⎽∎◩ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝŸÞŒŠŽŁßàáâãäåæçèéêëìíîïðñòóôõöøùúûüýÿþœšžł♪♫☼★☆✢✣✤✥✦✧✩✪✫✬✭✮✯✰✱✲✳✴✵✶✷✸✹✺✻✼✽✾✿❀❁❂❃❇❈❉❊❋♡❤❥❣❦❧💕💖💗💘💙💚💛🧡💜🖤🤍🤎💝💞💟♢◆◇◈◊⬖⬗⬘⬙❖💎☀☉☽☾🌑🌒🌓🌔🌕🌖🌗🌘🌙🌚🌛🌜☁☂☃☄☇☈☊☋☌☍⛅⛈⛆⛇⛉⛊⛋⛌⛍⛎⚡❄❅❆🌟🌠☎☏✆✉︎🖂🖃🖄🖅🖆📞📟📠📧📨📩📪📫📬📭📮🕿🖁♥♦♣♠♔♕♖♗♘♙♚♛♜♝♞♟♤♧🂠🂡🂢🂣🂤🂥🂦🂧🂨🂩🂪`;
+
+  /* some of these chars (🔺🔻🌙⚡♈…📧) default to color-emoji presentation,
+     and a browser may then swap in a color-emoji fallback with a wider
+     advance — that skews the line fill so wraps land early and look like
+     stray newlines. VS15 (U+FE0E) is a zero-width default-ignorable that
+     pins them to the text glyph in ThaumMono: every char stays exactly
+     one monospace cell, so lines fill to the edge cleanly. */
+  const SHEET_TEXT = SHEET_GLYPHS.replace(
+    /[\u{2600}-\u{27BF}\u{1F000}-\u{1FAFF}]/gu,
+    "$&\u{FE0E}",
+  );
 
   function waitForAll(selectors, timeoutMs) {
     const started = performance.now();
@@ -123,10 +134,15 @@
     }
 
     function thumbFromEvent(event) {
-      const rect = track.getBoundingClientRect();
-      if (!rect.width) return state.thumb;
-      const cellWidth = rect.width / total;
-      const raw = Math.round((event.clientX - rect.left - cellWidth / 2) / cellWidth);
+      /* measure the real glyph cells, not the track box: browsers round
+         each cell to device pixels individually, so an even division of
+         the track width drifts off the characters (worse after resize) */
+      const first = cells[1].getBoundingClientRect();
+      const last = cells[total - 2].getBoundingClientRect();
+      const span = last.left - first.left;
+      if (!span) return state.thumb;
+      const step = span / (total - 3);
+      const raw = Math.round((event.clientX - first.left) / step);
       return Math.min(total - 2, Math.max(1, raw));
     }
 
