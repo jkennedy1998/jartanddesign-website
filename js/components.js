@@ -988,7 +988,7 @@ function buildPortfolioSlice(slice, index) {
       releaseNotes.textContent = `release notes — ${slice.releaseNotes}`;
       copy.append(releaseNotes);
     }
-    copy.append(descriptionRow);
+    if (descriptionState.text) copy.append(descriptionRow);
     inner.append(copy);
   };
 
@@ -1240,6 +1240,11 @@ function buildPortfolioSlice(slice, index) {
     mediaWrap.innerHTML = slice.media.html;
     inner.append(mediaWrap);
     appendStandardCopy();
+  } else if (slice.type === "custom-with-copy" && slice.html) {
+    appendStandardCopy();
+    const custom = document.createElement("div");
+    custom.innerHTML = slice.html;
+    inner.append(custom);
   } else if (slice.type === "custom" && slice.html) {
     const custom = document.createElement("div");
     custom.innerHTML = slice.html;
@@ -1429,9 +1434,9 @@ function resolveSketchbookSourceSlice(entry, source) {
     };
   }
 
-  if (preset === "custom") {
+  if (preset === "custom" || preset === "custom-with-copy") {
     return {
-      type: "custom",
+      type: preset,
       tone,
       ...resolvedColors,
       html: resolveCustomMediaHtml(entry.html, { ...source, mediaDir, mediaFiles }),

@@ -2,8 +2,10 @@
 
 ## title
 thaum-mono
+## subtitle
+a bitmap typeface for textmode art
 ## preset
-custom
+custom-with-copy
 ## colors
 - title: e0e8d0
 - subtitle: e36325
@@ -26,4 +28,21 @@ custom
     journal and make art in my own handwriting that really pushed me to further
     this project.
   </p>
+</div>
+<div class="tm-section">
+  <h3 class="tm-heading">4 weights, 12x16 monospace, bitmap(ish)</h3>
+  <div class="tm-weight-bar" data-tm-weight-bar role="slider" tabindex="0" aria-label="weight" aria-valuemin="0" aria-valuemax="3" aria-valuenow="1"></div>
+  <div class="tm-morph-sheet" data-tm-sheet></div>
+</div>
+<div class="tm-section">
+  <h3 class="tm-heading">get the fonts</h3>
+  <p class="tm-copy">grab the zip for everything at once — license plus the four installable weights — or take individual weight files. Thaum Mono is MIT licensed.</p>
+  <div class="tm-download-list">
+    <a class="tm-text-button" href="/fonts/thaum-mono/ThaumMono-v0.14.zip" download>thaum-mono all weights</a>
+    <a class="tm-text-button" href="/fonts/thaum-mono/ThaumMono-W80.ttf" download>thaum mono W80</a>
+    <a class="tm-text-button" href="/fonts/thaum-mono/ThaumMono-W160.ttf" download>thaum mono W160</a>
+    <a class="tm-text-button" href="/fonts/thaum-mono/ThaumMono-W320.ttf" download>thaum mono W320</a>
+    <a class="tm-text-button" href="/fonts/thaum-mono/ThaumMono-W640.ttf" download>thaum mono W640</a>
+    <a class="tm-text-button" href="/fonts/thaum-mono/LICENSE.md" download>license</a>
+  </div>
 </div>

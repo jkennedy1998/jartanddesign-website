@@ -2,24 +2,51 @@
 
 ## title
 Thaum Painter
-## description mode
-static
+## subtitle
+a textmode painting studio
 ## description
-this is built to do very specific ascii interactions for illustrators, devs or people just wanting to play and make art.
-the entire program is hinged on monospace typefaces being used as a 3d raster mediums. right now it uses thaum-mono, my personal typeface.
+this is built to do very specific ascii interactions for illustrators, devs, or people just wanting to play and make art.
+the entire program is hinged on monospace typefaces being used as 3d raster mediums. right now it uses thaum-mono, my personal typeface.
 
-i wanted for people to be able to more easily make magic happen with ascii, taking it a step further from snazzy image conversion and into painting with raster in 3d spaces, with animation, and multiple users on a file at a given time.
-this program is free for all, see the license documentation in the download for more information.
-currently multiplayer usage is restricted to LAN connections only.
-if you find a bug or something odd, let me know! there are debug logs that are made for each file usage so that users can deliver these simply if they wanted to help improve the program.
+i wanted people to more easily make magic happen with ascii, taking it a step further from snazzy image conversion and into painting with raster in 3d spaces, with animation, and multiple users on a file at a given time.
+the carousel holds the app itself alongside some fruit, flowers, and other work ive made while bugtesting.
+
+this program is free for all; see the license documentation in the download for more information. currently multiplayer usage is restricted to LAN connections only. if you find a bug or something odd, let me know! there are debug logs made for each file usage so users can send them in to help improve the program.
 
 happy painting!
 - J
 ## release notes
-v0.1.6 · **Full Changelog**: https://github.com/jkennedy1998/thaum-painter/compare/v0.1.5...v0.1.6
+v0.1.7 · **Full Changelog**: https://github.com/jkennedy1998/thaum-painter/compare/v0.1.6...v0.1.7
 
 ## preset
-single-media
+carousel-media
+## item 1 colors
+- title: e0e8d0
+- subtitle: e36325
+- description: 787d8b
+- background: 120a1a
+- brightness: dark
+
+## item 2 colors
+- title: a65619
+- subtitle: a65619
+- description: a65619
+- background: fcffe4
+- brightness: light
+
+## item 3 colors
+- title: a7c446
+- subtitle: 8b9e4e
+- description: 4e9d34
+- background: 110a19
+- brightness: dark
+
+## item 4 colors
+- title: e99725
+- subtitle: e99725
+- description: e99725
+- background: 3c2327
+- brightness: dark
 ## links
 - linux: https://github.com/jkennedy1998/thaum-painter/releases/latest/download/thaum-painter-linux.tar.gz
 - windows: https://github.com/jkennedy1998/thaum-painter/releases/latest/download/thaum-painter-windows.zip
