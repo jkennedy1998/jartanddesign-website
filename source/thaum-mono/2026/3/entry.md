@@ -15,14 +15,12 @@ custom
 <div class="tm-section">
   <h3 class="tm-heading">get the fonts</h3>
   <p class="tm-copy">grab the zip for everything at once — license plus the four installable weights — or take individual weight files. Thaum Mono is MIT licensed.</p>
-  <div class="tm-download-row">
-    <a class="tm-text-button is-primary" href="/fonts/thaum-mono/ThaumMono-v0.14.zip" download>↓ thaum-mono v0.14 zip</a>
-  </div>
-  <div class="tm-download-row">
-    <a class="tm-text-button" href="/fonts/thaum-mono/ThaumMono-W80.ttf" download>W80 hairline</a>
-    <a class="tm-text-button" href="/fonts/thaum-mono/ThaumMono-W160.ttf" download>W160 light</a>
-    <a class="tm-text-button" href="/fonts/thaum-mono/ThaumMono-W320.ttf" download>W320 regular</a>
-    <a class="tm-text-button" href="/fonts/thaum-mono/ThaumMono-W640.ttf" download>W640 heavy</a>
+  <div class="tm-download-list">
+    <a class="tm-text-button" href="/fonts/thaum-mono/ThaumMono-v0.14.zip" download>thaum-mono all weights</a>
+    <a class="tm-text-button" href="/fonts/thaum-mono/ThaumMono-W80.ttf" download>thaum mono W80</a>
+    <a class="tm-text-button" href="/fonts/thaum-mono/ThaumMono-W160.ttf" download>thaum mono W160</a>
+    <a class="tm-text-button" href="/fonts/thaum-mono/ThaumMono-W320.ttf" download>thaum mono W320</a>
+    <a class="tm-text-button" href="/fonts/thaum-mono/ThaumMono-W640.ttf" download>thaum mono W640</a>
     <a class="tm-text-button" href="/fonts/thaum-mono/LICENSE.md" download>license</a>
   </div>
 </div>

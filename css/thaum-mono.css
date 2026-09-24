@@ -41,8 +41,9 @@
 /* weight handling — four SET static weights, snapped, never smooth-morphed.
    font-weight picks one of the four @font-face statics from style.css. */
 
-/* ascii weight bar: ◀┼─────┼─────┼─────┼─────▶ with weight labels under
-     the points — box-drawing chars, same vibes as the portfolio carousels */
+/* ascii weight bar: ┣┼─────┼─────┼─────┼─────┫ with weight labels under
+     the points — box-drawing chars only, all from the typeface.
+     drag slides the █ smoothly; release snaps to the nearest weight. */
 .tm-weight-bar {
   font-family: "ThaumMono", monospace;
   font-size: 13px;
@@ -50,6 +51,8 @@
   color: rgba(224, 232, 208, 0.4);
   cursor: pointer;
   user-select: none;
+  -webkit-user-select: none;
+  touch-action: none;
   max-width: 460px;
   margin: 6px 0 1.4em;
   outline: none;
@@ -64,12 +67,14 @@
   padding: 2px 0;
 }
 
-.tm-weight-bar .tm-weight-point.is-active {
+.tm-weight-bar .tm-weight-point.is-active,
+.tm-weight-bar .tm-weight-cap.is-active,
+.tm-weight-bar .tm-weight-dash.is-active {
   color: var(--slice-subtitle-color, #e36325);
 }
 
-.tm-weight-bar .tm-weight-arrow:hover {
-  color: var(--slice-subtitle-color, #e36325);
+.tm-weight-bar .tm-weight-cap {
+  color: rgba(224, 232, 208, 0.7);
 }
 
 .tm-weight-labels {
@@ -82,18 +87,29 @@
   white-space: pre;
 }
 
-/* glyph block — every glyph in the typeface, dense, no box, wraps to fit */
+/* glyph block — every glyph in the typeface, dense, wraps to fit.
+   default leading/kerning so the tiling is apparent, same typegrid
+   as the rest of the site. */
 .tm-morph-sheet {
   font-family: "ThaumMono", monospace;
-  font-size: 14px;
-  line-height: 2;
+  font-size: 13px;
+  line-height: inherit;
+  letter-spacing: 0;
   white-space: normal;
   word-break: normal;
   overflow-wrap: anywhere;
   color: var(--slice-desc-color, #787d8b);
 }
 
-/* text buttons — typeface only, no chrome */
+/* text buttons — typeface only, no chrome, stacked */
+.tm-download-list {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 12px 0;
+}
+
 .tm-text-button {
   font-family: "ThaumMono", monospace;
   font-weight: 160;
@@ -113,11 +129,4 @@
 .tm-text-button.is-primary {
   color: var(--slice-subtitle-color, #e36325);
   font-weight: 320;
-}
-
-.tm-download-row {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-  margin: 12px 0;
 }
