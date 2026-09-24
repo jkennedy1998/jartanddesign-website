@@ -21,11 +21,11 @@ custom-with-copy
   </div>
   <div class="contact-graph-row">
     <dt>discord</dt>
-    <dd><button class="contact-control" type="button" data-copy-value="kennedy_jared">@kennedy_jared</button><span class="contact-copy-status" data-copy-status aria-live="polite"></span></dd>
+    <dd><button class="contact-control" type="button" data-copy-value="jartanddesign">@jartanddesign</button><span class="contact-copy-status" data-copy-status aria-live="polite"></span></dd>
   </div>
   <div class="contact-graph-row">
     <dt>linkedin</dt>
-    <dd><span class="contact-pending">link to add</span></dd>
+    <dd><a class="contact-control" href="https://www.linkedin.com/in/jared-kennedy-364370185" target="_blank" rel="noreferrer">Jared Kennedy</a></dd>
   </div>
   <div class="contact-graph-row">
     <dt>instagram</dt>
