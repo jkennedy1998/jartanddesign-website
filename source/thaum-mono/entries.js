@@ -6,7 +6,7 @@ window.PORTFOLIO_PAGE_SOURCE = {
       sourceText: `# entry-data
 
 ## title
-Thaum Mono
+thaum-mono
 ## preset
 custom
 ## colors
@@ -18,20 +18,21 @@ custom
 
 ## html
 <div class="tm-slice">
-  <p class="tm-tagline">a bitmap pixel typeface in four weights · 12×16 tiles · built from hand-drawn atlas sheets</p>
   <p class="tm-copy">
-    Thaum Mono is the monospace typeface behind my renderer, painter, and games.
-    Every glyph is drawn by hand as 12×16 pixel tiles — one row per weight — then
-    dissolved into installable fonts. Many glyphs interlock with their neighbours
-    (borders, blocks, arrows, dots) so they can be assembled into panels, gauges,
-    and pictures. The four weights share the same grid, so you can push weight
-    without breaking the layout.
+    i made this typeface to specifically serve the purpose of a multi-weight,
+    monospace, bitmap typeface for textmode art with high Unicode coverage.
+    i started this project in 2026 because i couldn't find a typeface that does
+    this in the way i wanted, and i was getting very into ascii art and how to
+    push the bounds of the genre.
   </p>
   <p class="tm-copy">
-    This page is a specimen and a playground. Snap the weight slider through
-    the four set weights, type in the tester, and grab the fonts at the bottom.
+    the terminal art resurgence because of agentic developments in late 2025
+    definitely inspired this typeface's creation, but it was being able to
+    journal and make art in my own handwriting that really pushed me to further
+    this project.
   </p>
-</div>`
+</div>
+`
     },
     {
       mediaDir: "source/thaum-mono/2026/2/",

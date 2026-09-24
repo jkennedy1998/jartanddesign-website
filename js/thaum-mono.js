@@ -1,4 +1,4 @@
-/* thaum-mono subpage interactivity: snapping weight slider + glyph sheet.
+/* thaum-mono subpage interactivity: snapping weight slider + glyph textbox.
    Loaded after components.js, which builds the slices asynchronously,
    so we wait for the containers.
 
@@ -15,20 +15,10 @@
     [640, "heavy"],
   ];
 
-  const SHEET_GROUPS = [
-    ["ascii", "abcdefghijklmnopqrstuvwxyz 0123456789 ?!#%&$*@"],
-    ["borders light", "─│┌┐└┘├┤┬┴┼╞╟╡╢╤╥╧╨╪╫"],
-    ["borders heavy", "━┃┏┓┗┛┣┫┳┻╋═║╔╗╚╝╠╣╦╩╬"],
-    ["blocks", "█▓▒░▁▂▃▄▅▆▇▉▊▋▌▍▎▏▀▐"],
-    ["arrows", "←↑→↓↔↕⇐⇑⇒⇓⇔►◄▲▼"],
-    ["dots", "·•●○◌◍◎◉◐◑◒◓◔◕"],
-    ["dashes", "_-–—=~≠"],
-    ["ornaments", "♪♫★☆✦✧✩✪✫✬✭✮✯❀❁♡❤♢◆◇◈❖"],
-    ["faces", "☺☻"],
-    ["games", "♠♡♢♣♔♕♖♗♘♙♚♛♜♝♞♟"],
-  ];
-
-  const SHEET_PER_ROW = 24;
+  /* every glyph in the typeface, one big textbox — verbatim from the atlas */
+  const SHEET_TEXT = `ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789☺☻
+!#%&$*@^?/\\|+×÷±¬§¶†‡©®™¢£¥€'"\`()[]{}⟦⟧⟨⟩⟪⟫⦇⦈⸨⁅⁆‘’“”⌂⌐⌠⌡αβΓπΣσµτΦΘΩδ∞φε∩≡√ⁿ²∟₧ƒªº¿¡≈✝✞✟✠✚✛✜♁♰♱☥☦☧☨☩☪☢☣⚠☠☤⚕⚚⚗⚘♄☿♃♅♆♇⚳⚴⚵⚶⚷⚸⚹⚺⚻♈♉♊♋♌♍♎♏♐♑♒♓
+.,:;·•●○…⦸⨀∘∙∴∵∶∷◌◍◎◐◑◒◓◔◕◖◗◘◙◚◛◜◝◞◟◠◡◉⁖⁘⁙⁚⁛⁜⁝⁞․‥‧⁂_-–—=~∼≃≋Ξ≠‹›«»⟵⟶↔↕↜↝↞↠↢↣↤↦⇐⇑⇒⇓⇔⇚⇛⇦⇨←↑→↓►◄↨▲▼☚☛☜☝☞☟✌✍🖐🖑🖒🖓🖔🖕🖖➔➜➝➞➟➠➡➢➣➤➥➦➧➨🔺🔻━┃┏┓┗┛┣┫┳┻╋═║╔╗╚╝╠╣╦╩╬─│┌┐└┘├┤┬┴┼╞╟╡╢╤╥╧╨╪╫┍┎┑┒┕┖┙┚┝┞┟┠┡┢┥┦┧┨┩┪┭┮┯┰┱┲┵┶┷┸┹┺┽┾┿╀╁╂╃╄╅╆╇╈╉╊█▓▒░▁▂▃▄▅▆▇▉▊▋▌▍▎▏▀▐▔▕▘▝▖▗🙼🙽🙾🙿▚▞▙▛▜▟■□▢▣▪▫▤▥▦▧▨▩▬▭▮▯▰▱◰◱◲◳◧◨◩◪◫◻◼◽◾╱╲╳⎺⎻⎼⎽∎◩ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝŸÞŒŠŽŁßàáâãäåæçèéêëìíîïðñòóôõöøùúûüýÿþœšžł♪♫☼★☆✢✣✤✥✦✧✩✪✫✬✭✮✯✰✱✲✳✴✵✶✷✸✹✺✻✼✽✾✿❀❁❂❃❇❈❉❊❋♡❤❥❣❦❧💕💖💗💘💙💚💛🧡💜🖤🤍🤎💝💞💟♢◆◇◈◊⬖⬗⬘⬙❖💎☀☉☽☾🌑🌒🌓🌔🌕🌖🌗🌘🌙🌚🌛🌜☁☂☃☄☇☈☊☋☌☍⛅⛈⛆⛇⛉⛊⛋⛌⛍⛎⚡❄❅❆🌟🌠☎☏✆✉︎🖂🖃🖄🖅🖆📞📟📠📧📨📩📪📫📬📭📮🕿🖁♥♦♣♠♔♕♖♗♘♙♚♛♜♝♞♟♤♧🂠🂡🂢🂣🂤🂥🂦🂧🂨🂩🂪`;
 
   function waitForAll(selectors, timeoutMs) {
     const started = performance.now();
@@ -58,35 +48,13 @@
 
   function buildSheet(root) {
     if (!root) return;
-    SHEET_GROUPS.forEach(([label, chars]) => {
-      const group = document.createElement("div");
-      group.className = "tm-sheet-group";
-
-      const labelNode = document.createElement("span");
-      labelNode.className = "tm-sheet-label";
-      labelNode.textContent = label;
-      group.append(labelNode);
-
-      const cells = [...chars].filter((char) => char !== " ");
-      for (let start = 0; start < cells.length; start += SHEET_PER_ROW) {
-        const row = document.createElement("div");
-        row.className = "tm-sheet-row";
-        cells.slice(start, start + SHEET_PER_ROW).forEach((char) => {
-          const span = document.createElement("span");
-          span.className = "tm-char";
-          span.textContent = char;
-          row.append(span);
-        });
-        group.append(row);
-      }
-      root.append(group);
-    });
+    root.textContent = SHEET_TEXT;
   }
 
   function initWeightSnap(echo, weightInput, weightOut) {
     if (!weightInput) return;
     const ticks = [...document.querySelectorAll("[data-tm-tick]")];
-    const targets = [echo, ...document.querySelectorAll(".tm-morph-sheet .tm-char")];
+    const targets = [echo, ...document.querySelectorAll(".tm-morph-sheet, .tm-morph-sheet .tm-char")];
 
     const apply = () => {
       const index = Math.min(WEIGHTS.length - 1, Math.max(0, Number(weightInput.value) | 0));
