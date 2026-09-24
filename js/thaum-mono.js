@@ -144,17 +144,14 @@
       state.dragging = false;
       window.removeEventListener("pointermove", onPointerMove);
       window.removeEventListener("pointerup", onPointerUp);
-      snapIndex(nearestIndex(thumbFromEvent(event)));
+      snapIndex(nearestIndex(state.thumb));
     }
 
-    /* whole bar is live: points jump to their weight, the line and
-       label row jump to the nearest weight, drag slides then snaps */
+    /* whole bar is live, cell included: pointerdown grabs at the pointer
+       position (so the █ can be grabbed directly and slid), sliding moves
+       the thumb, and release snaps to the nearest weight — a click without
+       movement is just a drag that snaps where you pressed */
     root.addEventListener("pointerdown", (event) => {
-      const target = event.target.closest("span");
-      if (target && target.dataset.idx !== undefined) {
-        snapIndex(Number(target.dataset.idx));
-        return;
-      }
       state.dragging = true;
       state.thumb = thumbFromEvent(event);
       render();

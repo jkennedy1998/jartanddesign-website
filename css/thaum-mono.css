@@ -90,15 +90,17 @@
 }
 
 /* glyph block — every glyph in the typeface, dense, wraps to fit.
-   default leading/kerning so the tiling is apparent, same typegrid
-   as the rest of the site. */
+   word-break: break-all so every cell is a break opportunity — the
+   block wraps exactly at the line edge with no early breaks before
+   symbol runs (=, ⸨, arrows…). default leading/kerning so the
+   tiling is apparent, same typegrid as the rest of the site. */
 .tm-morph-sheet {
   font-family: "ThaumMono", monospace;
   font-size: 13px;
   line-height: inherit;
   letter-spacing: 0;
   white-space: normal;
-  word-break: normal;
+  word-break: break-all;
   overflow-wrap: anywhere;
   color: var(--slice-desc-color, #787d8b);
 }
