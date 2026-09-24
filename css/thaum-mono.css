@@ -40,179 +40,77 @@
 
 /* weight handling — four SET static weights, snapped, never smooth-morphed.
    font-weight picks one of the four @font-face statics from style.css. */
-.tm-morph-vf {
+
+/* ascii weight bar: ◀┼─────┼─────┼─────┼─────▶ with weight labels under
+     the points — box-drawing chars, same vibes as the portfolio carousels */
+.tm-weight-bar {
   font-family: "ThaumMono", monospace;
-  font-weight: 320;
-}
-
-/* snapping weight slider — 4 points, 80/160/320/640 */
-.tm-slider-block {
-  position: relative;
-  margin: 18px 0 10px;
-}
-
-.tm-slider-block input[type="range"] {
-  -webkit-appearance: none;
-  appearance: none;
-  display: block;
-  width: 100%;
-  height: 28px;
-  background: transparent;
+  font-size: 13px;
+  line-height: 1.4;
+  color: rgba(224, 232, 208, 0.4);
   cursor: pointer;
-  margin: 0;
+  user-select: none;
+  max-width: 460px;
+  margin: 6px 0 1.4em;
+  outline: none;
 }
 
-.tm-slider-block input[type="range"]:focus-visible {
-  outline: 1px dotted rgba(227, 99, 37, 0.6);
-  outline-offset: 2px;
+.tm-weight-bar:focus-visible {
+  color: rgba(224, 232, 208, 0.6);
 }
 
-.tm-slider-block input[type="range"]::-webkit-slider-runnable-track {
-  height: 4px;
-  border-radius: 2px;
-  background: rgba(224, 232, 208, 0.22);
+.tm-weight-bar .tm-weight-point {
+  color: rgba(224, 232, 208, 0.7);
+  padding: 2px 0;
 }
 
-.tm-slider-block input[type="range"]::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 16px;
-  height: 16px;
-  margin-top: -6px;
-  border-radius: 4px;
-  background: #e36325;
-  border: 2px solid #120a1a;
-  box-shadow: 0 0 0 1px #e36325;
-}
-
-.tm-slider-block input[type="range"]::-moz-range-track {
-  height: 4px;
-  border-radius: 2px;
-  background: rgba(224, 232, 208, 0.22);
-}
-
-.tm-slider-block input[type="range"]::-moz-range-thumb {
-  width: 16px;
-  height: 16px;
-  border-radius: 4px;
-  background: #e36325;
-  border: 2px solid #120a1a;
-  box-shadow: 0 0 0 1px #e36325;
-}
-
-/* the 4 weight points on the track; inset 8px each side to match thumb travel */
-.tm-slider-dots {
-  position: absolute;
-  top: 12px;
-  left: 8px;
-  right: 8px;
-  height: 4px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  pointer-events: none;
-}
-
-.tm-slider-dots span {
-  width: 4px;
-  height: 4px;
-  border-radius: 50%;
-  background: rgba(224, 232, 208, 0.55);
-}
-
-.tm-slider-ticks {
-  display: flex;
-  justify-content: space-between;
-  margin-top: 4px;
-  font-size: 11px;
-  letter-spacing: 0.08em;
-  color: rgba(224, 232, 208, 0.45);
-}
-
-.tm-slider-ticks span.is-active {
+.tm-weight-bar .tm-weight-point.is-active {
   color: var(--slice-subtitle-color, #e36325);
 }
 
-/* type tester */
-.tm-tester-line {
-  font-family: "ThaumMono", monospace;
-  font-weight: 320;
-  font-size: 13px;
-  line-height: 1.5;
-  color: var(--slice-desc-color, #787d8b);
-  margin: 0 0 8px;
+.tm-weight-bar .tm-weight-arrow:hover {
+  color: var(--slice-subtitle-color, #e36325);
 }
 
-.tm-tester-echo {
-  border: 1px solid rgba(224, 232, 208, 0.22);
-  border-radius: 6px;
-  padding: 14px 16px;
-  min-height: 1.5em;
-  outline: none;
-  white-space: pre-wrap;
-  word-break: break-word;
-  color: var(--slice-title-color, #e0e8d0);
-  font-size: 13px;
-  line-height: 1.65;
-  caret-color: #e36325;
-}
-
-.tm-tester-echo:focus-visible {
-  border-color: var(--slice-subtitle-color, #e36325);
-}
-
-.tm-readout {
-  display: block;
-  text-align: right;
-  margin-top: 2px;
-  min-width: 44px;
-  color: var(--slice-title-color, #e0e8d0);
+.tm-weight-labels {
+  letter-spacing: 0;
+  color: rgba(224, 232, 208, 0.4);
   font-size: 12px;
 }
 
-.tm-weights-row span[data-w] {
-  display: inline-block;
+.tm-weight-labels span {
+  white-space: pre;
 }
 
-/* glyph sheet — one big textbox with every glyph in the typeface */
+/* glyph block — every glyph in the typeface, dense, no box, wraps to fit */
 .tm-morph-sheet {
   font-family: "ThaumMono", monospace;
   font-size: 14px;
   line-height: 2;
-  border: 1px solid rgba(224, 232, 208, 0.18);
-  border-radius: 8px;
-  padding: 14px 16px;
-  background: rgba(0, 0, 0, 0.28);
-  white-space: pre-wrap;
+  white-space: normal;
   word-break: normal;
   overflow-wrap: anywhere;
   color: var(--slice-desc-color, #787d8b);
 }
 
-/* buttons */
-.tm-button {
+/* text buttons — typeface only, no chrome */
+.tm-text-button {
   font-family: "ThaumMono", monospace;
   font-weight: 160;
   font-size: 13px;
   letter-spacing: 0.04em;
   color: var(--slice-title-color, #e0e8d0);
-  background: transparent;
-  border: 1px solid rgba(224, 232, 208, 0.35);
-  border-radius: 6px;
-  padding: 8px 16px;
-  cursor: pointer;
   text-decoration: none;
   display: inline-block;
-  transition: border-color 0.2s ease, color 0.2s ease;
+  transition: color 0.2s ease;
 }
 
-.tm-button:hover {
-  border-color: var(--slice-subtitle-color, #e36325);
+.tm-text-button:hover {
   color: var(--slice-subtitle-color, #e36325);
+  text-decoration: underline;
 }
 
-.tm-button.is-primary {
-  border-color: var(--slice-subtitle-color, #e36325);
+.tm-text-button.is-primary {
   color: var(--slice-subtitle-color, #e36325);
   font-weight: 320;
 }

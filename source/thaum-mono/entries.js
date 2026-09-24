@@ -53,20 +53,7 @@ custom
 ## html
 <div class="tm-section">
   <h3 class="tm-heading">4 weights, 12x16 monospace, bitmap(ish)</h3>
-  <p class="tm-tester-line" data-tm-tester data-tm-text="the quick brown fox jumps over the lazy dog 0123456789 ?!#%&amp;">the quick brown fox jumps over the lazy dog 0123456789 ?!#%&amp;</p>
-  <div class="tm-tester-echo tm-morph-vf" data-tm-echo spellcheck="false" contenteditable="true">the quick brown fox jumps over the lazy dog 0123456789 ?!#%&amp;</div>
-  <div class="tm-slider-block">
-    <div class="tm-slider-dots" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
-    <input type="range" min="0" max="3" step="1" value="2" data-tm-weight aria-label="weight">
-    <div class="tm-slider-ticks">
-      <span data-tm-tick data-w="80">80</span>
-      <span data-tm-tick data-w="160">160</span>
-      <span data-tm-tick data-w="320" class="is-active">320</span>
-      <span data-tm-tick data-w="640">640</span>
-    </div>
-    <span class="tm-readout" data-tm-weight-out>W320 · regular</span>
-  </div>
-  <p class="tm-tester-line is-static" data-tm-weights-row></p>
+  <div class="tm-weight-bar" data-tm-weight-bar role="slider" tabindex="0" aria-label="weight" aria-valuemin="0" aria-valuemax="3" aria-valuenow="1"></div>
   <div class="tm-morph-sheet" data-tm-sheet></div>
 </div>
 `
@@ -90,18 +77,17 @@ custom
 ## html
 <div class="tm-section">
   <h3 class="tm-heading">get the fonts</h3>
-  <p class="tm-copy">grab the zip for everything at once — license plus the four installable weights — or take individual weight files. Thaum Mono is MIT licensed, the same terms as the thaum-renderer: free for anything, including commercial work, with credit.</p>
+  <p class="tm-copy">grab the zip for everything at once — license plus the four installable weights — or take individual weight files. Thaum Mono is MIT licensed.</p>
   <div class="tm-download-row">
-    <a class="tm-button is-primary" href="/fonts/thaum-mono/ThaumMono-v0.14.zip" download>↓ thaum-mono v0.14 zip</a>
+    <a class="tm-text-button is-primary" href="/fonts/thaum-mono/ThaumMono-v0.14.zip" download>↓ thaum-mono v0.14 zip</a>
   </div>
   <div class="tm-download-row">
-    <a class="tm-button" href="/fonts/thaum-mono/ThaumMono-W80.ttf" download>W80 hairline</a>
-    <a class="tm-button" href="/fonts/thaum-mono/ThaumMono-W160.ttf" download>W160 light</a>
-    <a class="tm-button" href="/fonts/thaum-mono/ThaumMono-W320.ttf" download>W320 regular</a>
-    <a class="tm-button" href="/fonts/thaum-mono/ThaumMono-W640.ttf" download>W640 heavy</a>
-    <a class="tm-button" href="/fonts/thaum-mono/LICENSE.md" download>license</a>
+    <a class="tm-text-button" href="/fonts/thaum-mono/ThaumMono-W80.ttf" download>W80 hairline</a>
+    <a class="tm-text-button" href="/fonts/thaum-mono/ThaumMono-W160.ttf" download>W160 light</a>
+    <a class="tm-text-button" href="/fonts/thaum-mono/ThaumMono-W320.ttf" download>W320 regular</a>
+    <a class="tm-text-button" href="/fonts/thaum-mono/ThaumMono-W640.ttf" download>W640 heavy</a>
+    <a class="tm-text-button" href="/fonts/thaum-mono/LICENSE.md" download>license</a>
   </div>
-  <p class="tm-copy">install: drop the .ttf files into your system fonts folder (windows: right-click → install · mac: double-click → install · linux: copy to ~/.local/share/fonts).</p>
 </div>`
     }
   ]
