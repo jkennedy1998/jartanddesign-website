@@ -1,4 +1,4 @@
-window.PORTFOLIO_PAGE_SOURCE = {
+window.PORTFOLIO_SLICE_SOURCE = Object.assign(window.PORTFOLIO_SLICE_SOURCE || {}, {
   "thaum-mono": [
     {
       mediaDir: "source/thaum-mono/2026/1/",
@@ -54,4 +54,7 @@ custom-with-copy
 `
     }
   ]
+});
+window.PORTFOLIO_PAGE_SOURCE = {
+  "thaum-mono": window.PORTFOLIO_SLICE_SOURCE["thaum-mono"]
 };

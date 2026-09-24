@@ -897,3 +897,82 @@ footer.site .tg-shell {
   .home[data-home-state="press"] .home-btn { font-weight: 80; }
   .home[data-home-state="press"] .home-btn.is-active { font-weight: 640; }
 }
+
+/* About keeps the same slice rhythm while making the contact surface compact
+   and legible as a two-column text graph. */
+.about-me-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  max-width: 52ch;
+}
+.about-me-copy p {
+  margin: 0;
+  color: var(--slice-desc-color);
+  font-weight: 160;
+}
+.contact-graph {
+  display: grid;
+  gap: 0;
+  width: min(100%, 52ch);
+  margin: 0;
+  border-top: 1px solid color-mix(in srgb, var(--slice-desc-color) 40%, transparent);
+}
+.contact-graph-row {
+  display: grid;
+  grid-template-columns: 14ch minmax(0, 1fr);
+  align-items: baseline;
+  min-height: 2.5rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--slice-desc-color) 40%, transparent);
+}
+.contact-graph dt,
+.contact-graph dd {
+  margin: 0;
+  padding: 0.75rem 0;
+}
+.contact-graph dt {
+  color: var(--slice-subtitle-color);
+  font-weight: 160;
+}
+.contact-graph dd {
+  display: flex;
+  align-items: baseline;
+  gap: 1ch;
+  min-width: 0;
+}
+.contact-control,
+.contact-control:visited {
+  appearance: none;
+  display: inline;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--slice-title-color);
+  font: inherit;
+  font-weight: 160;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+  overflow-wrap: anywhere;
+  -webkit-text-fill-color: currentColor;
+}
+.contact-control:hover,
+.contact-control:focus-visible {
+  color: var(--slice-subtitle-color);
+  font-weight: 320;
+  outline: none;
+}
+.contact-copy-status,
+.contact-pending {
+  color: var(--slice-desc-color);
+  font-weight: 80;
+}
+.contact-copy-status:empty {
+  display: none;
+}
+
+@media (max-width: 560px) {
+  .contact-graph-row {
+    grid-template-columns: 10ch minmax(0, 1fr);
+  }
+}

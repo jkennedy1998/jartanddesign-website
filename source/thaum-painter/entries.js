@@ -1,4 +1,4 @@
-window.PORTFOLIO_PAGE_SOURCE = {
+window.PORTFOLIO_SLICE_SOURCE = Object.assign(window.PORTFOLIO_SLICE_SOURCE || {}, {
   "thaum-painter": [
     {
       mediaDir: "source/thaum-painter/2026/1/",
@@ -65,4 +65,7 @@ carousel-media
 `
     }
   ]
+});
+window.PORTFOLIO_PAGE_SOURCE = {
+  "thaum-painter": window.PORTFOLIO_SLICE_SOURCE["thaum-painter"]
 };

@@ -15,6 +15,7 @@ const orderFiles = (files) => files.sort((a, b) => {
   const bIndex = Number(bMatch?.[2] || 0);
   return aIndex - bIndex || a.localeCompare(b);
 });
+const readSourceSlice = (sourceText) => sourceText.match(/^## source slice\s*\r?\n([^\r\n]+)/im)?.[1].trim() || "";
 
 const entries = [];
 for (const yearDir of years) {
@@ -31,6 +32,11 @@ for (const yearDir of years) {
     try {
       sourceText = await readFile(entryPath, 'utf8');
     } catch {
+      continue;
+    }
+    const sourceSlice = readSourceSlice(sourceText);
+    if (sourceSlice) {
+      entries.push({ order, year: Number(yearDir.name), sourceSlice });
       continue;
     }
     const folderFiles = await readdir(folderPath);
@@ -58,6 +64,9 @@ for (const entry of entries) {
 }
 
 const escapeTemplate = (text) => text.replace(/`/g, '\\`').replace(/\$\{/g, '\\${');
-const content = `window.PORTFOLIO_PAGE_SOURCE = {\n  development: [\n${dedupedEntries.map((entry) => `    {\n      mediaDir: ${JSON.stringify(entry.mediaDir)},\n      mediaFiles: ${JSON.stringify(entry.mediaFiles)},\n      sourceText: \`${escapeTemplate(entry.sourceText)}\`\n    }`).join(',\n')}\n  ]\n};\n`;
+const renderEntry = (entry) => entry.sourceSlice
+  ? `    { sourceSlice: ${JSON.stringify(entry.sourceSlice)} }`
+  : `    {\n      mediaDir: ${JSON.stringify(entry.mediaDir)},\n      mediaFiles: ${JSON.stringify(entry.mediaFiles)},\n      sourceText: \`${escapeTemplate(entry.sourceText)}\`\n    }`;
+const content = `window.PORTFOLIO_PAGE_SOURCE = {\n  development: [\n${dedupedEntries.map(renderEntry).join(',\n')}\n  ]\n};\n`;
 
 await writeFile(path.join(rootDir, 'entries.js'), content);

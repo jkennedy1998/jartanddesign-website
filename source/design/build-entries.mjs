@@ -79,6 +79,11 @@ for (const yearDir of years) {
     } catch {
       continue;
     }
+    const sourceSlice = parseEntryMarkdown(sourceText)["source slice"];
+    if (sourceSlice) {
+      entries.push({ order, year: Number(yearDir.name), sourceSlice });
+      continue;
+    }
     const folderFiles = await readdir(folderPath);
     const mediaFiles = orderFiles(folderFiles.filter((name) => mediaName.test(name)));
     assertCarouselItemColors(sourceText, mediaFiles, entryPath);
@@ -105,6 +110,9 @@ for (const entry of entries) {
 }
 
 const escapeTemplate = (text) => text.replace(/`/g, '\\`').replace(/\$\{/g, '\\${');
-const content = `window.PORTFOLIO_PAGE_SOURCE = {\n  design: [\n${dedupedEntries.map((entry) => `    {\n      mediaDir: ${JSON.stringify(entry.mediaDir)},\n      mediaFiles: ${JSON.stringify(entry.mediaFiles)},\n      sourceText: \`${escapeTemplate(entry.sourceText)}\`\n    }`).join(',\n')}\n  ]\n};\n`;
+const renderEntry = (entry) => entry.sourceSlice
+  ? `    { sourceSlice: ${JSON.stringify(entry.sourceSlice)} }`
+  : `    {\n      mediaDir: ${JSON.stringify(entry.mediaDir)},\n      mediaFiles: ${JSON.stringify(entry.mediaFiles)},\n      sourceText: \`${escapeTemplate(entry.sourceText)}\`\n    }`;
+const content = `window.PORTFOLIO_PAGE_SOURCE = {\n  design: [\n${dedupedEntries.map(renderEntry).join(',\n')}\n  ]\n};\n`;
 
 await writeFile(path.join(rootDir, 'entries.js'), content);

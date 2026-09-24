@@ -1,4 +1,4 @@
 # entry-data
 
 ## source slice
-thaum-painter
+thaum-mono

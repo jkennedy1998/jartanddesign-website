@@ -60,6 +60,8 @@ function renderHeader() {
 function renderFooter() {
   const el = document.querySelector("footer.site");
   if (!el) return;
+  const isAboutPage = currentPage() === "about";
+  el.dataset.footerMode = isAboutPage ? "static" : "interactive";
   el.innerHTML =
     '<div class="tg-shell">' +
     '<div class="site-footer-shell">' +
@@ -1461,11 +1463,15 @@ async function loadPortfolioSourceSlices(pageKey) {
   const sources = window.PORTFOLIO_PAGE_SOURCE?.[pageKey];
   if (!Array.isArray(sources) || !sources.length) return null;
 
-  const slices = sources.map((source) => {
+  const resolvedSources = sources.flatMap((source) => {
     const resolved = typeof source === "string" ? { sourceText: source } : source;
-    if (!resolved?.sourceText) return null;
-    const entry = parseSketchbookEntryMarkdown(resolved.sourceText);
-    return resolveSketchbookSourceSlice(entry, resolved);
+    if (!resolved?.sourceSlice) return [resolved];
+    return window.PORTFOLIO_SLICE_SOURCE?.[resolved.sourceSlice] || [];
+  });
+  const slices = resolvedSources.map((source) => {
+    if (!source?.sourceText) return null;
+    const entry = parseSketchbookEntryMarkdown(source.sourceText);
+    return resolveSketchbookSourceSlice(entry, source);
   });
 
   return slices.filter(Boolean);
@@ -1689,6 +1695,43 @@ function initInteractiveAsciiPanels(root = document) {
   });
 }
 
+async function copyContactValue(value) {
+  if (navigator.clipboard?.writeText) {
+    await navigator.clipboard.writeText(value);
+    return;
+  }
+  const fallback = document.createElement("textarea");
+  fallback.value = value;
+  fallback.setAttribute("readonly", "");
+  fallback.style.position = "fixed";
+  fallback.style.opacity = "0";
+  document.body.append(fallback);
+  fallback.select();
+  document.execCommand("copy");
+  fallback.remove();
+}
+
+function initContactCopyControls(root = document) {
+  root.querySelectorAll("[data-copy-value]").forEach((control) => {
+    if (control.dataset.copyReady === "true") return;
+    control.dataset.copyReady = "true";
+    control.addEventListener("click", async () => {
+      const value = control.dataset.copyValue?.trim();
+      if (!value) return;
+      const status = control.closest(".contact-graph-row")?.querySelector("[data-copy-status]");
+      try {
+        await copyContactValue(value);
+        if (status) status.textContent = "copied";
+      } catch {
+        if (status) status.textContent = "copy failed";
+      }
+      window.setTimeout(() => {
+        if (status) status.textContent = "";
+      }, 1800);
+    });
+  });
+}
+
 async function initPortfolioPage() {
   const page = document.querySelector(".portfolio-page[data-portfolio-page]");
   const mount = page?.querySelector(".portfolio-slices");
@@ -1704,6 +1747,7 @@ async function initPortfolioPage() {
 
   mount.replaceChildren(...slices.map((slice, index) => buildPortfolioSlice(slice, index)));
   initInteractiveAsciiPanels(mount);
+  initContactCopyControls(mount);
 
   const sliceEls = [...mount.querySelectorAll(".portfolio-slice")];
   const renderDescriptions = (animate = false) => {
@@ -1905,7 +1949,7 @@ function initSiteFooterStates() {
   const footer = document.querySelector("footer.site");
   const cta = footer?.querySelector(".site-footer-cta");
   const copy = footer?.querySelector(".site-footer-copy");
-  if (!footer || !cta || !copy) return;
+  if (!footer || !cta || !copy || footer.dataset.footerMode === "static") return;
 
   const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   const ctaRenderer = reduceMotion ? null : new DissolveTextRenderer(cta);

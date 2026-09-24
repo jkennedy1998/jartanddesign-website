@@ -1,5 +1,6 @@
 window.PORTFOLIO_PAGE_SOURCE = {
   design: [
+    { sourceSlice: "thaum-mono" },
     {
       mediaDir: "source/design/2026/1/",
       mediaFiles: {"images":["source/design/2026/1/image-1.png","source/design/2026/1/image-2.png","source/design/2026/1/image-3.png"],"videos":[]},

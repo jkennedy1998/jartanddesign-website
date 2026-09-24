@@ -60,6 +60,7 @@ for (const entry of entries) {
 }
 
 const escapeTemplate = (text) => text.replace(/`/g, '\\`').replace(/\$\{/g, '\\${');
-const content = `window.PORTFOLIO_PAGE_SOURCE = {\n  "thaum-mono": [\n${dedupedEntries.map((entry) => `    {\n      mediaDir: ${JSON.stringify(entry.mediaDir)},\n      mediaFiles: ${JSON.stringify(entry.mediaFiles)},\n      sourceText: \`${escapeTemplate(entry.sourceText)}\`\n    }`).join(',\n')}\n  ]\n};\n`;
+const sourceEntries = dedupedEntries.map((entry) => `    {\n      mediaDir: ${JSON.stringify(entry.mediaDir)},\n      mediaFiles: ${JSON.stringify(entry.mediaFiles)},\n      sourceText: \`${escapeTemplate(entry.sourceText)}\`\n    }`).join(',\n');
+const content = `window.PORTFOLIO_SLICE_SOURCE = Object.assign(window.PORTFOLIO_SLICE_SOURCE || {}, {\n  "thaum-mono": [\n${sourceEntries}\n  ]\n});\nwindow.PORTFOLIO_PAGE_SOURCE = {\n  "thaum-mono": window.PORTFOLIO_SLICE_SOURCE["thaum-mono"]\n};\n`;
 
 await writeFile(path.join(rootDir, 'entries.js'), content);
