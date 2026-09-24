@@ -43,6 +43,11 @@
      the points — box-drawing chars only, all from the typeface.
      Drag moves the █ along the dashes; releasing snaps to the nearest
      weight point. Keyboard arrows snap directly. */
+  /* ascii weight bar: ┣┼─────┼─────┼─────┼─────┫ with 80/160/320/640 under
+     the points — box-drawing chars only, all from the typeface.
+     click anywhere on the line to jump; drag slides the █ cell by cell
+     with the bar's own weight tracking the nearest point live; release
+     snaps to the nearest weight. Keyboard arrows snap directly. */
   function buildWeightBar(root, onIndex) {
     if (!root) return null;
 
@@ -51,11 +56,12 @@
     track.className = "tm-weight-track";
 
     const cells = [];
-    function appendCell(char, idx, kind) {
+    function appendCell(char, kind, weightIndex) {
       const span = document.createElement("span");
       span.textContent = char;
-      if (idx !== null) span.dataset.idx = String(idx);
+      span.dataset.base = char; /* render() always restores this first */
       if (kind) span.className = kind;
+      if (weightIndex !== undefined) span.dataset.idx = String(weightIndex);
       track.append(span);
       cells.push(span);
       return cells.length - 1;
@@ -65,12 +71,16 @@
       return 1 + weightIndex * (SEG + 1);
     }
 
-    appendCell("┣", null, "tm-weight-cap");
-    for (let w = 0; w < WEIGHTS.length; w += 1) {
-      if (w > 0) for (let d = 0; d < SEG; d += 1) appendCell("─", null, "tm-weight-dash");
-      appendCell("┼", w, "tm-weight-point");
+    function nearestIndex(thumb) {
+      return Math.min(WEIGHTS.length - 1, Math.max(0, Math.round((thumb - 1) / (SEG + 1))));
     }
-    appendCell("┫", null, "tm-weight-cap");
+
+    appendCell("┣", "tm-weight-cap");
+    for (let w = 0; w < WEIGHTS.length; w += 1) {
+      if (w > 0) for (let d = 0; d < SEG; d += 1) appendCell("─", "tm-weight-dash");
+      appendCell("┼", "tm-weight-point", w);
+    }
+    appendCell("┫", "tm-weight-cap");
     const total = cells.length;
 
     const labels = document.createElement("div");
@@ -79,36 +89,31 @@
     for (let i = 0; i < total; i += 1) labelLine.push(" ");
     WEIGHTS.forEach(([weight], w) => {
       const text = String(weight);
-      const center = pointIndex(w);
-      const start = Math.max(0, center - Math.floor(text.length / 2));
+      /* center under the point but never spill onto the ┣/┫ end columns */
+      const start = Math.min(
+        Math.max(1, pointIndex(w) - Math.floor(text.length / 2)),
+        total - 2 - (text.length - 1),
+      );
       for (let c = 0; c < text.length; c += 1) labelLine[start + c] = text[c];
     });
     const labelSpan = document.createElement("span");
     labelSpan.textContent = labelLine.join("");
     labels.append(labelSpan);
 
+    /* stateless: every render resets all cells from dataset.base, then
+       paints the thumb — no character can ever be left behind */
     function render() {
-      const thumb = state.thumb;
       cells.forEach((cell, idx) => {
-        const isPoint = cell.classList.contains("tm-weight-point");
-        if (idx === thumb) {
-          cell.textContent = "█";
-          cell.classList.add("is-active");
-        } else if (isPoint) {
-          cell.textContent = "┼";
-          cell.classList.toggle("is-active", false);
-        } else if (cell.classList.contains("tm-weight-cap")) {
-          cell.classList.toggle("is-active", false);
-        }
+        cell.textContent = cell.dataset.base;
+        cell.classList.toggle("is-active", idx === state.thumb);
       });
-      const nearest = Math.round((thumb - 1) / (SEG + 1));
-      const clamped = Math.min(WEIGHTS.length - 1, Math.max(0, nearest));
-      if (!state.dragging) {
-        root.setAttribute("aria-valuenow", String(state.index));
-        root.setAttribute("aria-valuetext", `W${WEIGHTS[state.index][0]} ${WEIGHTS[state.index][1]}`);
-        onIndex(state.index);
-      }
-      return clamped;
+      cells[state.thumb].textContent = "█";
+      const nearest = nearestIndex(state.thumb);
+      /* the bar itself renders at the nearest weight — live feedback */
+      track.style.fontWeight = String(WEIGHTS[nearest][0]);
+      root.setAttribute("aria-valuenow", String(nearest));
+      root.setAttribute("aria-valuetext", `W${WEIGHTS[nearest][0]} ${WEIGHTS[nearest][1]}`);
+      onIndex(nearest);
     }
 
     function snapIndex(next) {
@@ -134,25 +139,23 @@
       }
     }
 
-    function onPointerUp() {
+    function onPointerUp(event) {
       if (!state.dragging) return;
       state.dragging = false;
       window.removeEventListener("pointermove", onPointerMove);
       window.removeEventListener("pointerup", onPointerUp);
-      snapIndex(Math.round((state.thumb - 1) / (SEG + 1)));
+      snapIndex(nearestIndex(thumbFromEvent(event)));
     }
 
-    track.addEventListener("pointerdown", (event) => {
-      state.dragging = true;
+    /* whole bar is live: points jump to their weight, the line and
+       label row jump to the nearest weight, drag slides then snaps */
+    root.addEventListener("pointerdown", (event) => {
       const target = event.target.closest("span");
-      if (target && (target.classList.contains("tm-weight-point") || target.classList.contains("tm-weight-cap"))) {
-        const idx = Number(target.dataset.idx);
-        if (!Number.isNaN(idx)) {
-          snapIndex(idx);
-          state.dragging = false;
-          return;
-        }
+      if (target && target.dataset.idx !== undefined) {
+        snapIndex(Number(target.dataset.idx));
+        return;
       }
+      state.dragging = true;
       state.thumb = thumbFromEvent(event);
       render();
       window.addEventListener("pointermove", onPointerMove);
