@@ -176,9 +176,12 @@ function initHomeVideoBackgrounds() {
   };
 }
 
+const DISSOLVE_CANVAS_PAD = 40; // css px of bleed room so a thick animated stroke isn't clipped to the text's tight bounding box
+
 class DissolveTextRenderer {
   constructor(element) {
     this.element = element;
+    this.canvasPad = DISSOLVE_CANVAS_PAD;
     this.label = element.textContent.replace(/\n$/, "");
     this.lines = this.label.split("\n");
     this.mode = element.dataset.dissolveMode || "char";
@@ -256,8 +259,20 @@ class DissolveTextRenderer {
   resize() {
     const rect = this.element.getBoundingClientRect();
     const dpr = window.devicePixelRatio || 1;
-    const width = Math.max(1, Math.ceil(rect.width * dpr));
-    const height = Math.max(1, Math.ceil(rect.height * dpr));
+    const width = Math.max(1, Math.ceil((rect.width + this.canvasPad * 2) * dpr));
+    const height = Math.max(1, Math.ceil((rect.height + this.canvasPad * 2) * dpr));
+
+    // Set the CSS box from the same rounded device-pixel size (divided back
+    // down), rather than letting the browser compute it independently via
+    // `inset`. Two separate rounding paths for the same box drift apart at
+    // fractional device-pixel ratios and the browser then stretches the
+    // canvas bitmap to fit, which reads as glyphs sitting in slightly the
+    // wrong place — most visible on the blocky pixel-art logo.
+    this.canvas.style.left = `-${this.canvasPad}px`;
+    this.canvas.style.top = `-${this.canvasPad}px`;
+    this.canvas.style.width = `${width / dpr}px`;
+    this.canvas.style.height = `${height / dpr}px`;
+
     if (this.canvas.width === width && this.canvas.height === height) return;
 
     this.canvas.width = width;
@@ -345,7 +360,7 @@ class DissolveTextRenderer {
 
     if (!measureOnly) {
       this.lines.forEach((line, index) => {
-        ctx.fillText(line, 0, index * lineHeight);
+        ctx.fillText(line, this.canvasPad, index * lineHeight + this.canvasPad);
       });
     }
 
@@ -357,6 +372,7 @@ class DissolveTextRenderer {
     const { dpr, lineHeight, charWidth, maxCols } = this.metrics;
     const cellW = Math.max(1, Math.ceil(charWidth * dpr));
     const cellH = Math.max(1, Math.ceil(lineHeight * dpr));
+    const padPx = this.canvasPad * dpr;
     const columns = this.mode === "grid"
       ? maxCols
       : Math.max(...this.lines.map((line) => line.length), 1);
@@ -375,8 +391,8 @@ class DissolveTextRenderer {
         const noise = Math.min(1, Math.max(0, n0 * 0.58 + n1 * 0.29 + n2 * 0.13));
         const bandIndex = Math.round(noise * (this.bandCount - 1));
         const threshold = this.bandCount <= 1 ? 0 : bandIndex / (this.bandCount - 1);
-        const x = col * cellW;
-        const y = row * cellH;
+        const x = col * cellW + padPx;
+        const y = row * cellH + padPx;
         const w = Math.min(cellW, this.canvas.width - x);
         const h = Math.min(cellH, this.canvas.height - y);
         if (w <= 0 || h <= 0) continue;
@@ -496,12 +512,12 @@ class DissolveTextRenderer {
     ctx.scale(dpr, dpr);
     ctx.font = `${weight} ${fontSize}px ${family}`;
     ctx.textBaseline = "top";
-    ctx.lineJoin = "round";
-    ctx.miterLimit = 2;
+    ctx.lineJoin = "miter";
+    ctx.miterLimit = 4;
     ctx.lineWidth = this.strokeWidth;
     ctx.strokeStyle = this.strokeColor;
     this.lines.forEach((line, index) => {
-      ctx.strokeText(line, 0, index * lineHeight);
+      ctx.strokeText(line, this.canvasPad, index * lineHeight + this.canvasPad);
     });
     ctx.restore();
   }
@@ -2368,7 +2384,7 @@ function initHomeStates() {
         target = renderer.weightFromDataset(state, renderer.currentWeight);
       }
       renderer.setTarget(target);
-      renderer.setStrokeTarget(state === "idle" ? 0 : homeStrokeTargetPx);
+      renderer.setStrokeTarget(element === active ? homeStrokeTargetPx : 0);
     });
   };
 
