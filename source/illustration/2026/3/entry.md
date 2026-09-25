@@ -1,16 +1,16 @@
 # entry-data
 
 ## title
-Animal Well
+wildfire
 ## subtitle
-Photoshop
+after effects, blender, photoshop
 ## description
-I made this illustration after playing Animal Well because the game left such a strong impression on me visually and tonally. I wanted to sit with that feeling and build a piece around its eerie charm, sharp contrast, and sense of mystery. It was especially surreal to later see it travel through online spaces and then learn that Billy Basso, the creator of Animal Well, bought it as a print after coming across it there.
+this was largely a technical experiment to develop a fire shader i could reuse across many projects. it mixes hand-animated portions with math-driven modulation so the flame reads as richer and more detailed than it really is. a given line of fire is just a single low poly plane, with the look doing most of the heavy lifting.
 ## preset
 single-media
 ## colors
-- title: 120a1a
-- subtitle: 3e9ee2
-- description: 7e482e
-- background: ffffff
-- brightness: light
+- title: feffe5
+- subtitle: e36325
+- description: ffc62f
+- background: 000000
+- brightness: dark

@@ -1,32 +1,34 @@
 # entry-data
 
 ## title
-GEHC GD Project Management Flow Chart
+letters to GE creative concepts
 ## subtitle
-illustrator, photoshop
+after effects, blender, photoshop, workflow design
 ## description
-Created with GE Healthcare to apply its new brand language to a project management flow chart for employee training and internal workflow documentation. The piece went through a back-and-forth process with the GE Healthcare project management team to shape a clearer, more useful tool for understanding how a project moves through the organization.
+Preliminary concept creation for the production of Letters to GE, a custom in-house film produced while working at JWD Creative. The pitch process explored suggested workflows, papercraft styling, and lightbox rendering, and the resulting concept direction carried forward into production as a larger team of illustrators and animators brought the film to completion.
+
+The finished film went on to win an award, and this early concept work helped establish the visual and production approach that shaped the project.
 ## preset
 custom-media
 ## colors
 - title: 231f20
-- subtitle: 6f3bb8
-- description: 231f20
+- subtitle: 8a4b12
+- description: 3d322e
 - background: ffffff
 - brightness: light
 
 ## media html
-<div class="design-gehc-flow">
-  <figure class="design-gehc-flow-wide">
-    <img src="{{image-1}}" alt="GE Healthcare project management flow chart sketch">
-  </figure>
-  <figure class="design-gehc-flow-wide">
-    <img src="{{image-2}}" alt="GE Healthcare project management flow chart full spread">
+<div class="design-letters-ge-stack">
+  <figure>
+    <img src="{{image-1}}" alt="Letters to GE concept sketch animation">
   </figure>
   <figure>
-    <img src="{{image-3}}" alt="GE Healthcare project management flow chart left zoom">
+    <img src="{{image-2}}" alt="Letters to GE demo concept animation">
   </figure>
   <figure>
-    <img src="{{image-4}}" alt="GE Healthcare project management flow chart right zoom">
+    <img src="{{image-3}}" alt="Letters to GE scene 3 concept frame">
+  </figure>
+  <figure>
+    <img src="{{image-4}}" alt="Letters to GE style frame v3">
   </figure>
 </div>

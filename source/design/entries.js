@@ -3,17 +3,19 @@ window.PORTFOLIO_PAGE_SOURCE = {
     { sourceSlice: "thaum-mono" },
     {
       mediaDir: "source/design/2026/1/",
-      mediaFiles: {"images":["source/design/2026/1/image-1.png","source/design/2026/1/image-2.png","source/design/2026/1/image-3.png"],"videos":[]},
+      mediaFiles: {"images":["source/design/2026/1/image-1.png","source/design/2026/1/image-2.png","source/design/2026/1/image-3.png","source/design/2026/1/image-4.png","source/design/2026/1/image-5.png","source/design/2026/1/image-6.png","source/design/2026/1/image-7.png","source/design/2026/1/image-8.png"],"videos":["source/design/2026/1/video-1.mp4","source/design/2026/1/video-2.mp4","source/design/2026/1/video-3.mp4","source/design/2026/1/video-4.mp4","source/design/2026/1/video-5.mp4"]},
       sourceText: `# entry-data
 
 ## title
-Thermo Fisher Scientific Max IR Creative Concepts
+Instructional Videos for Higher Education
 ## subtitle
-photoshop, blender, photo-bash
+after effects, photoshop, historic media-sourcing
 ## description
-Advertising campaign concepts for air quality monitoring in manufacturing and wide-scale production use.
+Video production for the University of Illinois Chicago's Instructional Design, Media, and Pedagogy Services team, built to make dense higher-education material easier to hold onto. Each piece below pairs a specific instructional problem with a visual technique built to solve it, all carried under one consistent UIC-branded look.
+## description mode
+static
 ## preset
-custom-media
+video-accordion
 ## colors
 - title: 120a1a
 - subtitle: e36325
@@ -21,20 +23,30 @@ custom-media
 - background: ffffff
 - brightness: light
 
-## media html
-<div class="design-thermo-stack">
-  <figure class="design-thermo-wide">
-    <img src="{{image-1}}" alt="Thermo Fisher Scientific Max IR manufacturing air quality concept">
-  </figure>
-  <div class="design-thermo-pair">
-    <figure class="design-thermo-tall">
-      <img src="{{image-2}}" alt="Thermo Fisher Scientific Max IR source emissions monitoring concept">
-    </figure>
-    <figure class="design-thermo-tall">
-      <img src="{{image-3}}" alt="Thermo Fisher Scientific Max IR ambient air monitoring concept">
-    </figure>
-  </div>
-</div>
+## section 1 title
+3D Demonstration
+## section 1 description
+A modeled, animated process replaces a flat diagram, giving students a rotating, dimensional reference for something hard to picture on the page.
+
+## section 2 title
+Maps
+## section 2 description
+Map animation leads a learner through a place the same way a story leads a reader through a scene — plotting route, sequence, and change over the U.S. landscape so the geography becomes part of the narrative, not just a reference.
+
+## section 3 title
+Metaphor
+## section 3 description
+An unfamiliar concept translates into a visual metaphor students already understand, shortening the distance between the idea and the explanation.
+
+## section 4 title
+Supporting Media
+## section 4 description
+Historically sourced media does more than look good — it builds trust. Real photography of real places, held as close to the original time and source as possible, puts actual historical artifacts on screen so the lesson reads as evidence, not illustration.
+
+## section 5 title
+Course-Specific Problem Solving
+## section 5 description
+No two courses shared the same instructional problem, so no two solutions shared a template. Each project started with research into that course's subject and pedagogy, then built a visual solution designed specifically to solve it — the same process behind every piece above, pointed at whatever subject the course demanded.
 `
     },
     {
@@ -134,44 +146,7 @@ custom-media
     },
     {
       mediaDir: "source/design/2026/4/",
-      mediaFiles: {"images":["source/design/2026/4/image-1.png","source/design/2026/4/image-2.png","source/design/2026/4/image-3.png","source/design/2026/4/image-4.png"],"videos":[]},
-      sourceText: `# entry-data
-
-## title
-GEHC GD Project Management Flow Chart
-## subtitle
-illustrator, photoshop
-## description
-Created with GE Healthcare to apply its new brand language to a project management flow chart for employee training and internal workflow documentation. The piece went through a back-and-forth process with the GE Healthcare project management team to shape a clearer, more useful tool for understanding how a project moves through the organization.
-## preset
-custom-media
-## colors
-- title: 231f20
-- subtitle: 6f3bb8
-- description: 231f20
-- background: ffffff
-- brightness: light
-
-## media html
-<div class="design-gehc-flow">
-  <figure class="design-gehc-flow-wide">
-    <img src="{{image-1}}" alt="GE Healthcare project management flow chart sketch">
-  </figure>
-  <figure class="design-gehc-flow-wide">
-    <img src="{{image-2}}" alt="GE Healthcare project management flow chart full spread">
-  </figure>
-  <figure>
-    <img src="{{image-3}}" alt="GE Healthcare project management flow chart left zoom">
-  </figure>
-  <figure>
-    <img src="{{image-4}}" alt="GE Healthcare project management flow chart right zoom">
-  </figure>
-</div>
-`
-    },
-    {
-      mediaDir: "source/design/2026/5/",
-      mediaFiles: {"images":["source/design/2026/5/image-1.gif","source/design/2026/5/image-2.gif","source/design/2026/5/image-3.png","source/design/2026/5/image-4.jpg"],"videos":[]},
+      mediaFiles: {"images":["source/design/2026/4/image-1.gif","source/design/2026/4/image-2.gif","source/design/2026/4/image-3.png","source/design/2026/4/image-4.jpg"],"videos":[]},
       sourceText: `# entry-data
 
 ## title
@@ -209,8 +184,68 @@ custom-media
 `
     },
     {
+      mediaDir: "source/design/2026/5/",
+      mediaFiles: {"images":["source/design/2026/5/image-1.png"],"videos":[]},
+      sourceText: `# entry-data
+
+## title
+Intervals Interface
+## subtitle
+javascript, html, css
+## description
+A scale-sheet generator that stays dynamic to instrument, tuning, scale shape, and root note. Built for myself after getting tired of hand-drawing the same fretboard and keyboard diagrams every time I sat down to jam.
+## preset
+single-media
+## colors
+- title: e0e8d0
+- subtitle: e36325
+- description: 787d8b
+- background: 120a1a
+- brightness: dark
+
+## links
+- open the interval interface: /music-theory
+`
+    },
+    {
       mediaDir: "source/design/2026/6/",
-      mediaFiles: {"images":["source/design/2026/6/image-1.png","source/design/2026/6/image-2.jpg","source/design/2026/6/image-3.jpg","source/design/2026/6/image-4.jpg"],"videos":[]},
+      mediaFiles: {"images":["source/design/2026/6/image-1.png","source/design/2026/6/image-2.png","source/design/2026/6/image-3.png"],"videos":[]},
+      sourceText: `# entry-data
+
+## title
+Thermo Fisher Scientific Max IR Creative Concepts
+## subtitle
+photoshop, blender, photo-bash
+## description
+Advertising campaign concepts for air quality monitoring in manufacturing and wide-scale production use.
+## preset
+custom-media
+## colors
+- title: 120a1a
+- subtitle: e36325
+- description: 120a1a
+- background: ffffff
+- brightness: light
+
+## media html
+<div class="design-thermo-stack">
+  <figure class="design-thermo-wide">
+    <img src="{{image-1}}" alt="Thermo Fisher Scientific Max IR manufacturing air quality concept">
+  </figure>
+  <div class="design-thermo-pair">
+    <figure class="design-thermo-tall">
+      <img src="{{image-2}}" alt="Thermo Fisher Scientific Max IR source emissions monitoring concept">
+    </figure>
+    <figure class="design-thermo-tall">
+      <img src="{{image-3}}" alt="Thermo Fisher Scientific Max IR ambient air monitoring concept">
+    </figure>
+  </div>
+</div>
+`
+    },
+    {
+      mediaDir: "source/design/2026/7/",
+      mediaFiles: {"images":["source/design/2026/7/image-1.png","source/design/2026/7/image-2.jpg","source/design/2026/7/image-3.jpg","source/design/2026/7/image-4.jpg"],"videos":[]},
       sourceText: `# entry-data
 
 ## title

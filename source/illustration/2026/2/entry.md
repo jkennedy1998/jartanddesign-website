@@ -1,16 +1,16 @@
 # entry-data
 
 ## title
-wildfire
+IDMPS Teach-in 10 Video Bumper
 ## subtitle
-after effects, blender, photoshop
+after effects, blender, ableton, recorded sound effects
 ## description
-this was largely a technical experiment to develop a fire shader i could reuse across many projects. it mixes hand-animated portions with math-driven modulation so the flame reads as richer and more detailed than it really is. a given line of fire is just a single low poly plane, with the look doing most of the heavy lifting.
+Opening bumper for UIC's Teach-in 10 series. Built end to end — 3D animation and compositing in Blender and After Effects, with an original sound design pass built from recorded effects.
 ## preset
-single-media
+video-media
 ## colors
-- title: feffe5
+- title: 120a1a
 - subtitle: e36325
-- description: ffc62f
-- background: 000000
-- brightness: dark
+- description: 120a1a
+- background: ffffff
+- brightness: light

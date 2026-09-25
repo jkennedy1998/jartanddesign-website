@@ -1,31 +1,31 @@
 # entry-data
 
 ## title
-Aslet Osmo Pumps creative concepts
+Thermo Fisher Scientific Max IR Creative Concepts
 ## subtitle
-photoshop, blender
+photoshop, blender, photo-bash
 ## description
-Creative concept work centered on an implantable device for delivering medicine to test animals without repeated injections. By reducing the stress and disruption caused by needles, the campaign focused on how scientists could achieve cleaner, more reliable results while improving the testing experience for the animals.
+Advertising campaign concepts for air quality monitoring in manufacturing and wide-scale production use.
 ## preset
 custom-media
 ## colors
-- title: 0d1d26
-- subtitle: 007fa8
-- description: 2f3c44
+- title: 120a1a
+- subtitle: e36325
+- description: 120a1a
 - background: ffffff
 - brightness: light
 
 ## media html
-<div class="design-osmo-pumps-layout">
-  <figure>
-    <img src="{{image-2}}" alt="Aslet Osmo Pumps concept board">
+<div class="design-thermo-stack">
+  <figure class="design-thermo-wide">
+    <img src="{{image-1}}" alt="Thermo Fisher Scientific Max IR manufacturing air quality concept">
   </figure>
-  <div class="design-osmo-pumps-pair">
-    <figure>
-      <img src="{{image-4}}" alt="Aslet Osmo Pumps digital banner concept">
+  <div class="design-thermo-pair">
+    <figure class="design-thermo-tall">
+      <img src="{{image-2}}" alt="Thermo Fisher Scientific Max IR source emissions monitoring concept">
     </figure>
-    <figure>
-      <img src="{{image-3}}" alt="Aslet Osmo Pumps print ad concept">
+    <figure class="design-thermo-tall">
+      <img src="{{image-3}}" alt="Thermo Fisher Scientific Max IR ambient air monitoring concept">
     </figure>
   </div>
 </div>

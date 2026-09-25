@@ -75,49 +75,103 @@ function renderFooter() {
     '</div>';
 }
 
+function parseHomePreviewList(button) {
+  try {
+    const raw = button.dataset.preview;
+    if (!raw) return [];
+    const list = JSON.parse(raw);
+    return Array.isArray(list) ? list.filter(Boolean) : [];
+  } catch {
+    return [];
+  }
+}
+
 function initHomeVideoBackgrounds() {
-  const buttons = [...document.querySelectorAll(".home-btn[data-video]")];
+  const buttons = [...document.querySelectorAll(".home-btn[data-preview]")];
   if (!buttons.length) return { setActiveButton() {} };
 
-  const transitionMs = 1400;
-  const videos = new Map();
+  const startCycleMs = 900;
+  const floorCycleMs = 90;
+  const rampMs = 10000;
 
-  buttons.forEach((btn) => {
-    const video = document.createElement("video");
-    video.src = btn.dataset.video;
-    video.muted = true;
-    video.loop = true;
-    video.playsInline = true;
-    video.preload = "metadata";
-    video.className = "home-bg-video";
-    video.style.setProperty("--home-video-fade-ms", `${transitionMs}ms`);
-    document.body.appendChild(video);
-    videos.set(btn, video);
+  const layer = document.createElement("div");
+  layer.className = "home-bg-layer";
+  document.body.appendChild(layer);
+
+  const states = new Map();
+
+  const isAnimatedSrc = (src) => /\.(mp4|webm|gif)$/i.test(src);
+
+  buttons.forEach((button) => {
+    const items = parseHomePreviewList(button)
+      .slice()
+      .sort((a, b) => Number(isAnimatedSrc(b)) - Number(isAnimatedSrc(a)));
+    if (!items.length) return;
+    const frames = items.map((src, index) => {
+      const isVideo = /\.mp4$/i.test(src);
+      const frame = document.createElement(isVideo ? "video" : "img");
+      frame.className = "home-bg-frame";
+      frame.src = src;
+      if (isVideo) {
+        frame.muted = true;
+        frame.loop = true;
+        frame.playsInline = true;
+        frame.preload = "metadata";
+      } else {
+        frame.alt = "";
+      }
+      if (index === 0) frame.classList.add("is-current");
+      return frame;
+    });
+    states.set(button, { frames, index: 0, timer: null });
   });
 
-  const stopVideo = (video) => {
-    if (!video) return;
-    video.classList.remove("is-playing");
-    const token = String(performance.now());
-    video.dataset.stopToken = token;
-    window.setTimeout(() => {
-      if (video.dataset.stopToken !== token) return;
-      video.pause();
-      video.currentTime = 0;
-    }, transitionMs);
+  const stopCycle = (state) => {
+    if (state.timer) window.clearTimeout(state.timer);
+    state.timer = null;
   };
+
+  const startCycle = (state) => {
+    if (state.timer || state.frames.length < 2) return;
+    const startedAt = performance.now();
+    const tick = () => {
+      state.frames[state.index].classList.remove("is-current");
+      state.frames[state.index].pause?.();
+      state.index = (state.index + 1) % state.frames.length;
+      const next = state.frames[state.index];
+      next.classList.add("is-current");
+      next.play?.().catch(() => {});
+
+      const elapsed = performance.now() - startedAt;
+      const rampProgress = Math.min(1, elapsed / rampMs);
+      const eased = 1 - Math.pow(1 - rampProgress, 3);
+      const delay = startCycleMs - (startCycleMs - floorCycleMs) * eased;
+      state.timer = window.setTimeout(tick, delay);
+    };
+    state.timer = window.setTimeout(tick, startCycleMs);
+  };
+
+  let currentButton = null;
 
   return {
     setActiveButton(button) {
-      videos.forEach((video, owner) => {
-        if (owner !== button) stopVideo(video);
-      });
-      if (!button) return;
-      const video = videos.get(button);
-      if (!video) return;
-      delete video.dataset.stopToken;
-      video.classList.add("is-playing");
-      video.play().catch(() => {});
+      if (currentButton === button) return;
+      if (currentButton) {
+        const prevState = states.get(currentButton);
+        if (prevState) stopCycle(prevState);
+      }
+      layer.classList.remove("is-visible");
+      layer.replaceChildren();
+      currentButton = button;
+
+      const state = button ? states.get(button) : null;
+      if (!state) return;
+
+      layer.replaceChildren(...state.frames);
+      state.frames.forEach((frame, index) => frame.classList.toggle("is-current", index === state.index));
+      state.frames[state.index].play?.().catch(() => {});
+      layer.classList.add("is-visible");
+      startCycle(state);
     },
   };
 }
@@ -143,6 +197,13 @@ class DissolveTextRenderer {
     this.thresholdSpan = this.mode === "grid" ? 0.72 : 0.64;
     this.onsetLead = 0.01;
     this.transitionFrameCount = 6;
+    this.strokeWidth = 0;
+    this.fromStrokeWidth = 0;
+    this.toStrokeWidth = 0;
+    this.strokeStartAt = 0;
+    this.strokeDurationMs = 900;
+    this.strokeAnimating = false;
+    this.strokeColor = getComputedStyle(document.documentElement).getPropertyValue("--bg").trim() || "#e36325";
 
     element.textContent = "";
     if (element.matches("a")) {
@@ -351,6 +412,17 @@ class DissolveTextRenderer {
     DissolveTextRenderer.queue(this);
   }
 
+  setStrokeTarget(px) {
+    const target = Math.max(0, px);
+    if (this.strokeAnimating && this.toStrokeWidth === target) return;
+    if (!this.strokeAnimating && this.strokeWidth === target) return;
+    this.fromStrokeWidth = this.strokeWidth;
+    this.toStrokeWidth = target;
+    this.strokeStartAt = performance.now();
+    this.strokeAnimating = true;
+    DissolveTextRenderer.queue(this);
+  }
+
   tick(now) {
     let active = false;
 
@@ -360,29 +432,41 @@ class DissolveTextRenderer {
       this.currentColor = this.mixColor(this.fromColor, this.toColor, easedColor);
       this.layerCanvases = new Map();
       this.renderLayers();
-      active = colorProgress < 1 || active;
       if (colorProgress >= 1) {
         this.currentColor = this.toColor;
         this.colorAnimating = false;
+      } else {
+        active = true;
       }
     }
 
-    if (!this.animating) {
-      if (this.colorAnimating) {
-        this.drawFrame(this.currentWeight, this.currentWeight, 1);
+    if (this.strokeAnimating) {
+      const strokeProgress = Math.min(1, (now - this.strokeStartAt) / this.strokeDurationMs);
+      const easedStroke = strokeProgress * strokeProgress * (3 - 2 * strokeProgress);
+      this.strokeWidth = this.fromStrokeWidth + (this.toStrokeWidth - this.fromStrokeWidth) * easedStroke;
+      if (strokeProgress >= 1) {
+        this.strokeWidth = this.toStrokeWidth;
+        this.strokeAnimating = false;
+      } else {
+        active = true;
+      }
+    }
+
+    if (this.animating) {
+      this.progress = Math.min(1, (now - this.startAt) / this.durationMs);
+      const eased = this.progress * this.progress * (3 - 2 * this.progress);
+      this.drawFrame(this.fromWeight, this.toWeight, eased);
+      if (this.progress >= 1) {
+        this.currentWeight = this.toWeight;
+        this.animating = false;
+      } else {
+        active = true;
       }
       return active;
     }
 
-    this.progress = Math.min(1, (now - this.startAt) / this.durationMs);
-    const eased = this.progress * this.progress * (3 - 2 * this.progress);
-    this.drawFrame(this.fromWeight, this.toWeight, eased);
-    if (this.progress >= 1) {
-      this.currentWeight = this.toWeight;
-      this.animating = false;
-      return this.colorAnimating;
-    }
-    return true;
+    this.drawFrame(this.currentWeight, this.currentWeight, 1);
+    return active;
   }
 
   drawFrame(fromWeight, toWeight, progress) {
@@ -393,12 +477,33 @@ class DissolveTextRenderer {
     const toLayer = this.layerCanvases.get(toWeight);
 
     ctx.clearRect(0, 0, width, height);
+    this.drawStroke(ctx);
     if (progress <= 0 || fromWeight === toWeight || !this.transitionCells?.length) {
       ctx.drawImage(fromLayer, 0, 0);
       return;
     }
 
     this.drawSteppedFrame(ctx, fromWeight, toWeight, progress);
+  }
+
+  drawStroke(ctx) {
+    if (!this.strokeWidth || this.strokeWidth <= 0 || !this.metrics) return;
+    const { dpr, fontSize, lineHeight } = this.metrics;
+    const family = getComputedStyle(this.element).fontFamily;
+    const weight = Math.round(this.getVisibleWeight());
+    ctx.save();
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.scale(dpr, dpr);
+    ctx.font = `${weight} ${fontSize}px ${family}`;
+    ctx.textBaseline = "top";
+    ctx.lineJoin = "round";
+    ctx.miterLimit = 2;
+    ctx.lineWidth = this.strokeWidth;
+    ctx.strokeStyle = this.strokeColor;
+    this.lines.forEach((line, index) => {
+      ctx.strokeText(line, 0, index * lineHeight);
+    });
+    ctx.restore();
   }
 
   drawSteppedFrame(ctx, fromWeight, toWeight, progress) {
@@ -958,8 +1063,13 @@ function buildPortfolioSlice(slice, index) {
 
   if (descriptionIsStatic) {
     descriptionRow.classList.add("is-static");
-    setRenderedLabel(preview, descriptionState.text);
-    descriptionRow.append(preview);
+    section.__renderDescription = () => {
+      buildDescriptionLayout();
+      setRenderedLabel(preview, descriptionState.firstLine);
+      extra.textContent = descriptionState.remainder;
+      extra.style.display = descriptionState.remainder ? "block" : "none";
+    };
+    descriptionRow.append(preview, extra);
   } else {
     section.__renderDescription = renderDescription;
     toggle.addEventListener("click", () => {
@@ -1251,6 +1361,115 @@ function buildPortfolioSlice(slice, index) {
     const custom = document.createElement("div");
     custom.innerHTML = slice.html;
     inner.append(custom);
+  } else if (slice.type === "video-accordion" && Array.isArray(slice.sections)) {
+    if (Array.isArray(slice.heroImages) && slice.heroImages.length) {
+      const heroWrap = document.createElement("div");
+      heroWrap.className = "portfolio-slice-media-wrap portfolio-hero-cycle-wrap";
+      const heroImages = slice.heroImages.map((src, heroIndex) => {
+        const heroImage = document.createElement("img");
+        heroImage.className = "portfolio-slice-media portfolio-hero-cycle-image";
+        if (heroIndex === 0) heroImage.classList.add("is-current");
+        heroImage.src = src;
+        heroImage.alt = `${slice.title || "work"} still ${heroIndex + 1}`;
+        heroWrap.append(heroImage);
+        return heroImage;
+      });
+      inner.append(heroWrap);
+
+      if (heroImages.length > 1 && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        let currentHeroIndex = 0;
+        let cycleTimer = null;
+        let idleTimer = null;
+        const advanceHero = () => {
+          heroImages[currentHeroIndex].classList.remove("is-current");
+          currentHeroIndex = (currentHeroIndex + 1) % heroImages.length;
+          heroImages[currentHeroIndex].classList.add("is-current");
+        };
+        const stopHeroCycle = () => {
+          if (cycleTimer) window.clearInterval(cycleTimer);
+          cycleTimer = null;
+        };
+        const noteHeroActivity = () => {
+          if (!cycleTimer) cycleTimer = window.setInterval(advanceHero, 140);
+          if (idleTimer) window.clearTimeout(idleTimer);
+          idleTimer = window.setTimeout(stopHeroCycle, 220);
+        };
+        section.addEventListener("pointermove", noteHeroActivity);
+
+        let heroInView = false;
+        if (typeof IntersectionObserver === "function") {
+          const heroObserver = new IntersectionObserver(([entry]) => { heroInView = entry.isIntersecting; }, { threshold: 0.2 });
+          heroObserver.observe(section);
+        }
+        window.addEventListener("scroll", () => { if (heroInView) noteHeroActivity(); }, { passive: true });
+      }
+    }
+
+    appendStandardCopy();
+
+    const accordionToggle = document.createElement("button");
+    accordionToggle.type = "button";
+    accordionToggle.className = "portfolio-slice-toggle home-dissolve portfolio-dissolve portfolio-dissolve-button";
+    accordionToggle.dataset.weightIdle = "80";
+    accordionToggle.dataset.weightHover = "160";
+    accordionToggle.dataset.weightPress = "320";
+    accordionToggle.setAttribute("aria-expanded", "false");
+    setRenderedLabel(accordionToggle, "▧▩▨  ");
+
+    const accordionLabel = document.createElement("p");
+    accordionLabel.className = "portfolio-slice-description portfolio-slice-description-preview home-dissolve portfolio-dissolve";
+    accordionLabel.dataset.weightIdle = "80";
+    accordionLabel.dataset.weightHover = "160";
+    accordionLabel.textContent = "the work";
+
+    const accordionRow = document.createElement("div");
+    accordionRow.className = "portfolio-slice-description-row portfolio-accordion-row";
+    accordionRow.append(accordionToggle, accordionLabel);
+
+    const accordion = document.createElement("div");
+    accordion.className = "portfolio-accordion";
+
+    slice.sections.forEach((entrySection) => {
+      const block = document.createElement("div");
+      block.className = "portfolio-accordion-section";
+
+      const heading = document.createElement("p");
+      heading.className = "portfolio-slice-subtitle portfolio-accordion-heading";
+      heading.textContent = entrySection.title || "";
+      block.append(heading);
+
+      if (entrySection.src) {
+        const mediaWrap = document.createElement("div");
+        mediaWrap.className = "portfolio-slice-media-wrap portfolio-accordion-media-wrap";
+        const video = document.createElement("video");
+        video.className = "portfolio-slice-media portfolio-accordion-video";
+        video.src = entrySection.src;
+        video.muted = true;
+        video.loop = true;
+        video.controls = false;
+        video.preload = "auto";
+        video.playsInline = true;
+        video.dataset.videoHovering = "false";
+        mediaWrap.append(video);
+        block.append(mediaWrap);
+      }
+
+      const blurb = document.createElement("p");
+      blurb.className = "portfolio-slice-description portfolio-accordion-description";
+      blurb.textContent = entrySection.description || "";
+      block.append(blurb);
+
+      accordion.append(block);
+    });
+
+    const setAccordionOpen = (open) => {
+      section.classList.toggle("is-accordion-open", open);
+      accordionToggle.setAttribute("aria-expanded", open ? "true" : "false");
+      setRenderedLabel(accordionToggle, open ? "▨▩▧  " : "▧▩▨  ");
+    };
+    accordionRow.addEventListener("click", () => setAccordionOpen(!section.classList.contains("is-accordion-open")));
+
+    inner.append(accordionRow, accordion);
   } else {
     appendStandardCopy();
   }
@@ -1360,6 +1579,24 @@ function collectCarouselItemColorSections(entry, preset) {
   return sections;
 }
 
+function collectAccordionSections(entry, mediaFiles) {
+  const sections = new Map();
+  Object.entries(entry).forEach(([key, value]) => {
+    const match = key.match(/^section\s+(\d+)\s+(title|description)$/i);
+    if (!match) return;
+    const index = Number(match[1]) - 1;
+    const section = sections.get(index) || {};
+    section[match[2].toLowerCase()] = value;
+    sections.set(index, section);
+  });
+  const videos = mediaFiles.videos || [];
+  return [...sections.keys()].sort((a, b) => a - b).map((index) => ({
+    title: sections.get(index).title || "",
+    description: sections.get(index).description || "",
+    src: videos[index] || videos[0] || "",
+  }));
+}
+
 function resolveCustomMediaHtml(sourceText, source) {
   const mediaFiles = source.mediaFiles || {};
   const images = mediaFiles.images || [];
@@ -1419,6 +1656,17 @@ function resolveSketchbookSourceSlice(entry, source) {
           };
         }),
       },
+      ...shared,
+    };
+  }
+
+  if (preset === "video-accordion") {
+    return {
+      type: "video-accordion",
+      tone,
+      ...resolvedColors,
+      heroImages: mediaFiles.images || [],
+      sections: collectAccordionSections(entry, mediaFiles),
       ...shared,
     };
   }
@@ -2100,6 +2348,7 @@ function initHomeStates() {
 
   const videoState = initHomeVideoBackgrounds();
   const renderers = new Map(dissolveEls.map((el) => [el, new DissolveTextRenderer(el)]));
+  const homeStrokeTargetPx = 23; // ~17pt, animated in while the bg cycle is live
 
   let active = null;
   let pressed = false;
@@ -2119,6 +2368,7 @@ function initHomeStates() {
         target = renderer.weightFromDataset(state, renderer.currentWeight);
       }
       renderer.setTarget(target);
+      renderer.setStrokeTarget(state === "idle" ? 0 : homeStrokeTargetPx);
     });
   };
 

@@ -1,16 +1,16 @@
 # entry-data
 
 ## title
-Harley Davidson T shirt
+Christmas 2025
 ## subtitle
-photoshop, blender
+Photoshop
 ## description
-Motorcycle Company of the West Indies in Barbados commissioned this design through the creative house I was working with at the time. The concept was approved and produced as a Harley Davidson T shirt for the company.
+This was the Christmas card I gave out in 2025 as part of a yearly tradition. For this one I wanted to center my new home and include my cat Chainsaw along with my new cat Machete, so it became a little snapshot of that moment in life turned into a holiday illustration.
 ## preset
 single-media
 ## colors
-- title: 120a1a
-- subtitle: e36325
-- description: 120a1a
+- title: 26411d
+- subtitle: 8a3f23
+- description: 26411d
 - background: ffffff
 - brightness: light

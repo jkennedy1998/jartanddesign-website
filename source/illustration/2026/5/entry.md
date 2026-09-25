@@ -1,30 +1,16 @@
 # entry-data
 
 ## title
-shading with noise
+leafboat
 ## subtitle
-blender, after effects, photoshop
+blender, photoshop
 ## description
-this group came out of developing procedural shader setups in blender that could produce stylized value banding and then break that banding apart with texture. i was looking for a controlled way to make values step across a surface or image without feeling flat. these three tests orbit fallout 76, metroid prime 3, and stardew valley while pushing that same shader thinking in different directions.
+this was part of a stretch of experimental workflow work after college while i was trying to get a better handle on mixed media between 3d modeling and lighting and 2d illustration. leafboat came out of that phase as a small piece where i could push atmosphere, texture, and painterly treatment without giving up the dimensional base.
 ## preset
-carousel-media
-## item 1 colors
-- title: 3e1a0c
-- subtitle: e2e990
-- description: fff3b3
-- background: db3d29
+single-media
+## colors
+- title: fdfffb
+- subtitle: 778989
+- description: bf8c78
+- background: 00000f
 - brightness: dark
-
-## item 2 colors
-- title: e2e990
-- subtitle: e36325
-- description: a9c448
-- background: 000500
-- brightness: dark
-
-## item 3 colors
-- title: e5598d
-- subtitle: e06900
-- description: 4f3b9d
-- background: ffffff
-- brightness: light

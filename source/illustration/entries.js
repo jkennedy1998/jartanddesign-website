@@ -23,7 +23,28 @@ single-media
     },
     {
       mediaDir: "source/illustration/2026/2/",
-      mediaFiles: {"images":["source/illustration/2026/2/image-1.gif"],"videos":[]},
+      mediaFiles: {"images":[],"videos":["source/illustration/2026/2/video-1.mp4"]},
+      sourceText: `# entry-data
+
+## title
+IDMPS Teach-in 10 Video Bumper
+## subtitle
+after effects, blender, ableton, recorded sound effects
+## description
+Opening bumper for UIC's Teach-in 10 series. Built end to end — 3D animation and compositing in Blender and After Effects, with an original sound design pass built from recorded effects.
+## preset
+video-media
+## colors
+- title: 120a1a
+- subtitle: e36325
+- description: 120a1a
+- background: ffffff
+- brightness: light
+`
+    },
+    {
+      mediaDir: "source/illustration/2026/3/",
+      mediaFiles: {"images":["source/illustration/2026/3/image-1.gif"],"videos":[]},
       sourceText: `# entry-data
 
 ## title
@@ -43,8 +64,8 @@ single-media
 `
     },
     {
-      mediaDir: "source/illustration/2026/3/",
-      mediaFiles: {"images":["source/illustration/2026/3/image-1.jpg"],"videos":[]},
+      mediaDir: "source/illustration/2026/4/",
+      mediaFiles: {"images":["source/illustration/2026/4/image-1.jpg"],"videos":[]},
       sourceText: `# entry-data
 
 ## title
@@ -64,8 +85,8 @@ single-media
 `
     },
     {
-      mediaDir: "source/illustration/2026/4/",
-      mediaFiles: {"images":["source/illustration/2026/4/image-1.gif"],"videos":[]},
+      mediaDir: "source/illustration/2026/5/",
+      mediaFiles: {"images":["source/illustration/2026/5/image-1.gif"],"videos":[]},
       sourceText: `# entry-data
 
 ## title
@@ -85,8 +106,8 @@ single-media
 `
     },
     {
-      mediaDir: "source/illustration/2026/5/",
-      mediaFiles: {"images":["source/illustration/2026/5/image-1.gif","source/illustration/2026/5/image-2.gif","source/illustration/2026/5/image-3.gif"],"videos":[]},
+      mediaDir: "source/illustration/2026/6/",
+      mediaFiles: {"images":["source/illustration/2026/6/image-1.gif","source/illustration/2026/6/image-2.gif","source/illustration/2026/6/image-3.gif"],"videos":[]},
       sourceText: `# entry-data
 
 ## title
@@ -120,8 +141,8 @@ carousel-media
 `
     },
     {
-      mediaDir: "source/illustration/2026/6/",
-      mediaFiles: {"images":["source/illustration/2026/6/image-1.jpg"],"videos":[]},
+      mediaDir: "source/illustration/2026/7/",
+      mediaFiles: {"images":["source/illustration/2026/7/image-1.jpg"],"videos":[]},
       sourceText: `# entry-data
 
 ## title
@@ -141,8 +162,8 @@ single-media
 `
     },
     {
-      mediaDir: "source/illustration/2026/7/",
-      mediaFiles: {"images":["source/illustration/2026/7/image-1.jpg"],"videos":[]},
+      mediaDir: "source/illustration/2026/8/",
+      mediaFiles: {"images":["source/illustration/2026/8/image-1.jpg"],"videos":[]},
       sourceText: `# entry-data
 
 ## title
@@ -151,6 +172,27 @@ Harley Davidson T shirt
 photoshop, blender
 ## description
 Motorcycle Company of the West Indies in Barbados commissioned this design through the creative house I was working with at the time. The concept was approved and produced as a Harley Davidson T shirt for the company.
+## preset
+single-media
+## colors
+- title: 120a1a
+- subtitle: e36325
+- description: 120a1a
+- background: ffffff
+- brightness: light
+`
+    },
+    {
+      mediaDir: "source/illustration/2026/9/",
+      mediaFiles: {"images":["source/illustration/2026/9/image-1.png"],"videos":[]},
+      sourceText: `# entry-data
+
+## title
+The Maze of AI in Education
+## subtitle
+photoshop, editorial illustration
+## description
+Spot illustration for an IDMPS at UIC blog post, made early in the shift toward AI in the classroom, when opinion on classroom AI use ran skeptical and largely unsettled. Students and an instructor are shown working through a maze — the shared search for where AI actually helps and where it gets in the way.
 ## preset
 single-media
 ## colors

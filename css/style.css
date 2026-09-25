@@ -425,6 +425,12 @@ footer.site .tg-shell {
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
+.portfolio-slice-description-row.is-static .portfolio-slice-description-extra {
+  max-width: 100%;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-weight: inherit;
+}
 .portfolio-slice-toggle {
   grid-column: 1;
   grid-row: 1;
@@ -465,6 +471,47 @@ footer.site .tg-shell {
 }
 .portfolio-slice.is-expanded .portfolio-slice-description-extra {
   display: block;
+}
+.portfolio-hero-cycle-wrap {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+}
+.portfolio-hero-cycle-image {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+}
+.portfolio-hero-cycle-image.is-current {
+  opacity: 1;
+}
+.portfolio-accordion-row {
+  cursor: pointer;
+  margin-top: 0.5rem;
+}
+.portfolio-accordion {
+  display: none;
+  flex-direction: column;
+  gap: 2.5rem;
+  margin-top: 1.25rem;
+  width: min(100%, 52ch);
+}
+.portfolio-slice.is-accordion-open .portfolio-accordion {
+  display: flex;
+}
+.portfolio-accordion-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+.portfolio-accordion-heading {
+  margin: 0;
+}
+.portfolio-accordion-description {
+  margin: 0;
 }
 .portfolio-carousel-controls {
   display: flex;
@@ -676,21 +723,26 @@ footer.site .tg-shell {
 }
 
 .design-thermo-pair,
-.design-rendezvous-pair,
-.design-osmo-pumps-pair {
+.design-rendezvous-pair {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 1rem;
 }
 
 .design-osmo-pumps-pair {
-  align-items: start;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 1rem;
+  height: min(30rem, 46vw);
 }
 
 .design-osmo-pumps-pair figure {
   display: flex;
   justify-content: center;
   align-items: flex-start;
+  height: 100%;
+  flex: 0 0 auto;
 }
 
 .design-gehc-flow-wide {
@@ -700,13 +752,6 @@ footer.site .tg-shell {
 .design-gehc-flow-wide img {
   width: 100%;
   height: auto;
-  object-fit: contain;
-}
-
-.design-osmo-pumps-pair img {
-  width: auto;
-  max-width: 100%;
-  height: min(52rem, 62vw);
   object-fit: contain;
 }
 
@@ -723,12 +768,23 @@ footer.site .tg-shell {
 .design-labcorp-grid img,
 .design-rendezvous-layout img,
 .design-gehc-flow img,
-.design-letters-ge-stack img,
-.design-osmo-pumps-layout img,
-.design-osmo-pumps-pair img {
+.design-letters-ge-stack img {
   display: block;
   width: 100%;
   height: auto;
+  background: transparent;
+}
+
+.design-osmo-pumps-layout > figure img {
+  background: transparent;
+}
+
+.design-osmo-pumps-pair img {
+  display: block;
+  width: auto;
+  max-width: 100%;
+  height: 100%;
+  object-fit: contain;
   background: transparent;
 }
 
@@ -773,9 +829,19 @@ footer.site .tg-shell {
     gap: 0.75rem;
   }
 
-  .design-labcorp-grid,
-  .design-osmo-pumps-pair {
+  .design-labcorp-grid {
     grid-template-columns: 1fr;
+  }
+
+  .design-osmo-pumps-pair {
+    flex-direction: column;
+    align-items: stretch;
+    height: auto;
+  }
+
+  .design-osmo-pumps-pair figure {
+    height: auto;
+    flex: 1 1 auto;
   }
 
   .design-osmo-pumps-pair img {
@@ -812,19 +878,49 @@ footer.site .tg-shell {
   position: relative;
   z-index: 1;
 }
-/* button hover video background: full-screen, behind content, non-interactive */
-.home-bg-video {
+/* button hover background: full-screen, behind content, non-interactive.
+   cycles curated stills/clips for the hovered destination, hard cuts, no
+   crossfade. an orange wash sits on top at 30% to keep the brand color
+   present and soften the contrast/flashing of the raw cycling media. */
+.home-bg-layer {
   position: fixed;
   inset: 0;
   width: 100vw;
   height: 100vh;
-  object-fit: cover;
-  z-index: 0;
+  overflow: hidden;
   pointer-events: none;
   opacity: 0;
-  transition: opacity var(--home-video-fade-ms, 1400ms) ease;
+  z-index: 0;
+  transition: opacity 150ms ease;
 }
-.home-bg-video.is-playing { opacity: 1; }
+.home-bg-layer::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--bg);
+  opacity: 0.3;
+}
+.home-bg-layer.is-visible { opacity: 1; }
+.home-bg-frame {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+}
+.home-bg-frame.is-current { opacity: 1; }
+
+@media (max-width: 860px), (prefers-reduced-motion: reduce) {
+  .home-bg-layer { display: none; }
+}
+
+/* contrast against the full-screen cycle now comes from an animated orange
+   stroke drawn directly into the dissolve canvas (see DissolveTextRenderer /
+   setStrokeTarget) rather than a CSS filter — cheap to redraw every frame
+   and reads as a bold, deliberate outline instead of a soft blur. */
+
 .home-mark {
   display: flex;
   flex-direction: column;
