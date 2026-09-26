@@ -50,6 +50,13 @@
   --site-frame-pad: 2ch;
 }
 * { box-sizing: border-box; margin: 0; }
+html {
+  /* the animated-stroke bleed on dissolve canvases (see DISSOLVE_CANVAS_PAD
+     in js/components.js) intentionally extends past its text's own box; on
+     narrow viewports that bleed can poke past the edge of the page, which
+     otherwise shows an unwanted page-wide horizontal scrollbar. */
+  overflow-x: hidden;
+}
 body {
   background: var(--bg);
   color: var(--fg);
@@ -60,6 +67,7 @@ body {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  overflow-x: hidden;
 }
 /* one size everywhere */
 h1, h2, p, a, nav, footer, .placeholder { font-size: inherit; }
@@ -78,6 +86,18 @@ pre {
 header.site {
   background: #FEFFE5;
   padding: 1.75rem 0;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  transition: transform 260ms ease;
+}
+header.site.site-header-hidden {
+  transform: translateY(-100%);
+}
+@media (prefers-reduced-motion: reduce) {
+  header.site {
+    transition: none;
+  }
 }
 header.site .tg-shell {
   display: flex;
@@ -880,8 +900,15 @@ footer.site .tg-shell {
 }
 /* button hover background: full-screen, behind content, non-interactive.
    cycles curated stills/clips for the hovered destination, hard cuts, no
-   crossfade. an orange wash sits on top at 30% to keep the brand color
-   present and soften the contrast/flashing of the raw cycling media. */
+   crossfade between frames. an orange wash sits on top at 30% at rest to
+   keep the brand color present and soften the contrast/flashing of the raw
+   cycling media; at the front/end of a hover (is-visible toggling) the wash
+   itself fades between fully opaque and that 30% resting level, so the
+   flashing fades in/out under a brand-orange veil instead of hard-cutting
+   into/out of view. --bg-fade-duration is set inline per direction (see
+   fadeInMs/fadeOutMs in initHomeVideoBackgrounds, js/components.js) so
+   fade-in and fade-out can run at different speeds while the layer and its
+   wash stay in lockstep. */
 .home-bg-layer {
   position: fixed;
   inset: 0;
@@ -891,16 +918,18 @@ footer.site .tg-shell {
   pointer-events: none;
   opacity: 0;
   z-index: 0;
-  transition: opacity 150ms ease;
+  transition: opacity var(--bg-fade-duration, 650ms) ease;
 }
 .home-bg-layer::after {
   content: "";
   position: absolute;
   inset: 0;
   background: var(--bg);
-  opacity: 0.3;
+  opacity: 1;
+  transition: opacity var(--bg-fade-duration, 650ms) ease;
 }
 .home-bg-layer.is-visible { opacity: 1; }
+.home-bg-layer.is-visible::after { opacity: 0.3; }
 .home-bg-frame {
   position: absolute;
   inset: 0;
@@ -932,6 +961,7 @@ footer.site .tg-shell {
 .home-mark pre {
   margin: 0;
   font-family: inherit;
+  overflow: visible;
 }
 .home-sub {
   color: var(--fg);

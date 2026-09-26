@@ -1,9 +1,9 @@
 # entry-data
 
 ## title
-lets talk
+contacts
 ## subtitle
-you made it this far
+reach out and lets have a conversation. :)
 ## preset
 custom-with-copy
 ## colors

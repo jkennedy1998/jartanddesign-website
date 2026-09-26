@@ -91,8 +91,10 @@ function initHomeVideoBackgrounds() {
   if (!buttons.length) return { setActiveButton() {} };
 
   const startCycleMs = 900;
-  const floorCycleMs = 90;
+  const floorCycleMs = 160; // top cycling speed, slowed well below the original 90ms
   const rampMs = 10000;
+  const fadeInMs = 1100; // veil fading down to reveal a newly hovered button's media
+  const fadeOutMs = 650; // veil fading back up to solid orange once the pointer leaves
 
   const layer = document.createElement("div");
   layer.className = "home-bg-layer";
@@ -152,24 +154,41 @@ function initHomeVideoBackgrounds() {
   };
 
   let currentButton = null;
+  let teardownTimer = null;
+
+  const clearTeardown = () => {
+    if (teardownTimer) window.clearTimeout(teardownTimer);
+    teardownTimer = null;
+  };
 
   return {
     setActiveButton(button) {
       if (currentButton === button) return;
+      clearTeardown();
       if (currentButton) {
         const prevState = states.get(currentButton);
         if (prevState) stopCycle(prevState);
       }
-      layer.classList.remove("is-visible");
-      layer.replaceChildren();
       currentButton = button;
 
       const state = button ? states.get(button) : null;
-      if (!state) return;
+      if (!state) {
+        // fade the veil back to solid orange first (see --bg-fade-duration in
+        // css), then drop the frames — clearing them immediately would cut
+        // the media out from under the fade before it's had a chance to play.
+        layer.style.setProperty("--bg-fade-duration", `${fadeOutMs}ms`);
+        layer.classList.remove("is-visible");
+        teardownTimer = window.setTimeout(() => {
+          layer.replaceChildren();
+          teardownTimer = null;
+        }, fadeOutMs);
+        return;
+      }
 
       layer.replaceChildren(...state.frames);
       state.frames.forEach((frame, index) => frame.classList.toggle("is-current", index === state.index));
       state.frames[state.index].play?.().catch(() => {});
+      layer.style.setProperty("--bg-fade-duration", `${fadeInMs}ms`);
       layer.classList.add("is-visible");
       startCycle(state);
     },
@@ -698,6 +717,38 @@ class DissolveTextRenderer {
 
 DissolveTextRenderer.instances = new Set();
 DissolveTextRenderer.frame = null;
+
+// Sticky header: hides on scroll-down, reappears on scroll-up or near the
+// top. A small delta threshold avoids flicker from sub-pixel/bounce scroll
+// noise; the visible transform transition (see .site-header-hidden) does the
+// rest so this only ever toggles one class.
+function initStickyHeader() {
+  const header = document.querySelector("header.site");
+  if (!header) return;
+
+  const SCROLL_DELTA = 8;
+  let lastY = window.scrollY;
+  let ticking = false;
+
+  const update = () => {
+    ticking = false;
+    const y = Math.max(0, window.scrollY);
+    if (y <= header.offsetHeight) {
+      header.classList.remove("site-header-hidden");
+      lastY = y;
+      return;
+    }
+    if (Math.abs(y - lastY) <= SCROLL_DELTA) return;
+    header.classList.toggle("site-header-hidden", y > lastY);
+    lastY = y;
+  };
+
+  window.addEventListener("scroll", () => {
+    if (ticking) return;
+    ticking = true;
+    requestAnimationFrame(update);
+  }, { passive: true });
+}
 
 function initSiteHeaderStates() {
   const header = document.querySelector("header.site");
@@ -2459,6 +2510,7 @@ function initHomeStates() {
 document.addEventListener("DOMContentLoaded", () => {
   renderHeader();
   renderFooter();
+  initStickyHeader();
   initSiteHeaderStates();
   initSiteFooterStates();
   initPortfolioPage().catch((error) => console.error(error));
