@@ -1,35 +1,4 @@
-window.PORTFOLIO_PAGE_SOURCE = {
-  development: [
-    {
-      mediaDir: "source/development/2026/0/",
-      mediaFiles: {"images":["source/development/2026/0/image-1.jpg","source/development/2026/0/image-2.png","source/development/2026/0/image-3.png","source/development/2026/0/image-4.png","source/development/2026/0/image-5.png"],"videos":["source/development/2026/0/video-1.mp4","source/development/2026/0/video-2.mp4"]},
-      sourceText: `# entry-data
-
-## title
-One video, a whole product experience
-
-## subtitle
-iPhone video · Meta Segment Anything 3 · Node.js, Python + FFmpeg · agentic development
-
-## description
-Jesse needed a way to show one-of-a-kind earrings in motion without turning every new piece into a post-production task. I designed an intake that turns one quick phone video into clean, interactive product imagery.
-
-## preset
-intake-showcase
-
-## colors
-- title: 29110b
-- subtitle: b74022
-- description: 5b3830
-- background: ffffff
-- brightness: light
-`
-    },
-    { sourceSlice: "thaum-painter" },
-    {
-      mediaDir: "source/development/2026/2/",
-      mediaFiles: {"images":["source/development/2026/2/image-1.jpg","source/development/2026/2/image-2.png","source/development/2026/2/image-3.png","source/development/2026/2/image-4.png","source/development/2026/2/image-5.jpg","source/development/2026/2/image-6.jpg"],"videos":["source/development/2026/2/video-1.mp4"]},
-      sourceText: `# entry-data
+# entry-data
 
 ## title
 DOGDASH
@@ -70,7 +39,3 @@ DOGDASH was made to be played in public. Mooncat Studios handled the cabinet har
 - description: d8b4c6
 - background: 2a1030
 - brightness: dark
-`
-    }
-  ]
-};

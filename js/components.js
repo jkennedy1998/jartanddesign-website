@@ -1348,6 +1348,99 @@ function buildPortfolioSlice(slice, index) {
     interactive.append(interactiveCopy, dial);
     process.append(interactive);
     inner.append(process);
+  } else if (slice.type === "game-showcase") {
+    const media = slice.media || {};
+    const heroWrap = document.createElement("div");
+    heroWrap.className = "portfolio-slice-media-wrap game-hero-wrap";
+    const hero = document.createElement("video");
+    hero.className = "portfolio-slice-media game-hero-video";
+    hero.src = media.heroVideo || "";
+    hero.muted = true;
+    hero.loop = true;
+    hero.autoplay = true;
+    hero.playsInline = true;
+    hero.preload = "metadata";
+    heroWrap.append(hero);
+    inner.append(heroWrap);
+    appendStandardCopy();
+
+    // Same reveal rhythm as the earring slice's intake-process: the guided
+    // walkthrough stays hidden until the description's read-more is expanded.
+    const process = document.createElement("section");
+    process.className = "game-process";
+    process.setAttribute("aria-label", "How a run plays");
+    const processTitle = document.createElement("p");
+    processTitle.className = "game-process-kicker";
+    processTitle.textContent = "how a run plays";
+    process.append(processTitle);
+
+    (slice.walkthrough || []).forEach((step, stepIndex) => {
+      const article = document.createElement("article");
+      article.className = "game-process-step";
+      const stepMedia = document.createElement("div");
+      stepMedia.className = "game-process-media";
+      const image = document.createElement("img");
+      image.src = (media.walkthroughImages || [])[stepIndex] || "";
+      image.alt = step.title || slice.title || "";
+      image.loading = "lazy";
+      stepMedia.append(image);
+      const copy = document.createElement("div");
+      copy.className = "game-process-copy";
+      const number = document.createElement("p");
+      number.className = "game-process-number";
+      number.textContent = String(stepIndex + 1).padStart(2, "0");
+      const heading = document.createElement("p");
+      heading.className = "portfolio-slice-subtitle game-process-heading";
+      heading.textContent = step.title;
+      const blurb = document.createElement("p");
+      blurb.className = "portfolio-slice-description game-process-description";
+      blurb.textContent = step.description;
+      copy.append(number, heading, blurb);
+      article.append(stepMedia, copy);
+      process.append(article);
+    });
+
+    const finaleImages = (media.finaleImages || []).filter(Boolean);
+    if ((slice.finale?.title || slice.finale?.description) && finaleImages.length) {
+      const finale = document.createElement("article");
+      finale.className = "game-finale";
+      const finaleCopy = document.createElement("div");
+      finaleCopy.className = "game-process-copy";
+      const finaleKicker = document.createElement("p");
+      finaleKicker.className = "game-process-number";
+      finaleKicker.textContent = "on tour";
+      const finaleHeading = document.createElement("p");
+      finaleHeading.className = "portfolio-slice-subtitle game-process-heading";
+      finaleHeading.textContent = slice.finale.title;
+      const finaleBlurb = document.createElement("p");
+      finaleBlurb.className = "portfolio-slice-description game-process-description";
+      finaleBlurb.textContent = slice.finale.description;
+      finaleCopy.append(finaleKicker, finaleHeading, finaleBlurb);
+      const photos = document.createElement("div");
+      photos.className = "game-finale-photos";
+      finaleImages.forEach((src, photoIndex) => {
+        const image = document.createElement("img");
+        image.src = src;
+        image.alt = `${slice.title} in the wild ${photoIndex + 1}`;
+        image.loading = "lazy";
+        photos.append(image);
+      });
+      finale.append(finaleCopy, photos);
+      process.append(finale);
+    }
+    inner.append(process);
+
+    if (media.bannerImage) {
+      const bannerWrap = document.createElement("div");
+      bannerWrap.className = "portfolio-slice-media-wrap game-banner-wrap";
+      const banner = document.createElement("img");
+      banner.className = "portfolio-slice-media game-banner";
+      banner.src = media.bannerImage;
+      banner.alt = `${slice.title} key art`;
+      banner.loading = "lazy";
+      bannerWrap.append(banner);
+      inner.append(bannerWrap);
+    }
   } else if (slice.type === "carousel-media") {
     section.classList.add("portfolio-carousel-slice");
     const controls = document.createElement("div");
@@ -1797,6 +1890,22 @@ function collectCarouselItemColorSections(entry, preset) {
   return sections;
 }
 
+function collectGameShowcaseSteps(entry) {
+  const steps = new Map();
+  Object.entries(entry).forEach(([key, value]) => {
+    const match = key.match(/^step (\d+) (title|description)$/i);
+    if (!match) return;
+    const index = Number(match[1]) - 1;
+    const step = steps.get(index) || {};
+    step[match[2].toLowerCase()] = value;
+    steps.set(index, step);
+  });
+  return [...steps.keys()].sort((a, b) => a - b).map((index) => ({
+    title: steps.get(index).title || "",
+    description: steps.get(index).description || "",
+  }));
+}
+
 function collectAccordionSections(entry, mediaFiles) {
   const sections = new Map();
   Object.entries(entry).forEach(([key, value]) => {
@@ -1891,6 +2000,26 @@ function resolveSketchbookSourceSlice(entry, source) {
         previewImage: mediaFiles.images?.[2] || "",
         spriteImage: mediaFiles.images?.[3] || "",
         stabilizedImage: mediaFiles.images?.[4] || "",
+      },
+      ...shared,
+    };
+  }
+
+  if (preset === "game-showcase") {
+    return {
+      type: "game-showcase",
+      tone,
+      ...resolvedColors,
+      media: {
+        heroVideo: mediaFiles.videos?.[0] || "",
+        bannerImage: mediaFiles.images?.[0] || "",
+        walkthroughImages: (mediaFiles.images || []).slice(1, 4),
+        finaleImages: (mediaFiles.images || []).slice(4, 6),
+      },
+      walkthrough: collectGameShowcaseSteps(entry),
+      finale: {
+        title: entry["finale title"] || "",
+        description: entry["finale description"] || "",
       },
       ...shared,
     };

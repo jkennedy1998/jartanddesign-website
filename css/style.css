@@ -690,6 +690,122 @@ footer.site .tg-shell {
   .intake-process-media { min-height: 12rem; }
   .intake-earring-dial { min-height: 40rem; }
 }
+
+/* ---- game-showcase (DOGDASH): video hero, guided run walkthrough,
+   finale photo pair, closing key-art banner. Mirrors the intake-process
+   reveal rhythm but with its own classes so the earring slice's per-step
+   portrait tweaks don't leak in. ---- */
+.game-hero-wrap {
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  background: #1c0b22;
+}
+.game-hero-video {
+  height: 100%;
+  object-fit: cover;
+}
+.game-process {
+  display: none;
+  flex-direction: column;
+  gap: clamp(3.5rem, 9vw, 7rem);
+  width: min(100%, 70rem);
+  margin: 1.5rem auto 1rem;
+  padding-top: 2.25rem;
+  padding-bottom: clamp(2rem, 5vw, 4rem);
+  border-top: 1px solid color-mix(in srgb, var(--slice-desc-color, #d8b4c6) 38%, transparent);
+}
+.portfolio-slice.is-expanded .game-process {
+  display: flex;
+}
+.game-process-kicker,
+.game-process-number {
+  margin: 0;
+  color: var(--slice-subtitle-color, inherit);
+  font-size: 0.78em;
+  font-weight: 320;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+.game-process-step,
+.game-finale {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(13rem, 0.65fr);
+  align-items: center;
+  gap: clamp(1.25rem, 4vw, 4.5rem);
+}
+.game-process-step:nth-of-type(odd) .game-process-media {
+  order: 2;
+}
+.game-process-step:nth-of-type(odd) .game-process-copy {
+  order: 1;
+}
+.game-process-media {
+  display: grid;
+  place-items: center;
+  position: relative;
+  aspect-ratio: 16 / 9;
+  min-height: 12rem;
+  overflow: hidden;
+  /* game screenshots carry their own art, so contain on the slice's own
+     dark ground instead of cover-cropping the HUD or the minimap */
+  background: color-mix(in srgb, var(--slice-background, #2a1030) 88%, #000000);
+}
+.game-process-media img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+.game-process-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  max-width: 30rem;
+}
+.game-process-heading,
+.game-process-description {
+  margin: 0;
+}
+.game-process-description {
+  line-height: 1.45;
+}
+.game-finale {
+  grid-template-columns: minmax(13rem, 0.65fr) minmax(0, 1.35fr);
+  padding-top: 1rem;
+}
+.game-finale-photos {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: clamp(0.75rem, 2vw, 1.5rem);
+}
+.game-finale-photos img {
+  width: 100%;
+  height: 100%;
+  aspect-ratio: 3 / 2;
+  object-fit: cover;
+}
+.game-banner-wrap {
+  overflow: hidden;
+  background: #1c0b22;
+}
+.game-banner {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+@media (max-width: 680px) {
+  .game-process-step,
+  .game-finale {
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+  }
+  .game-process-step:nth-of-type(odd) .game-process-media,
+  .game-process-step:nth-of-type(odd) .game-process-copy {
+    order: initial;
+  }
+  .game-finale-photos img {
+    aspect-ratio: 4 / 3;
+  }
+}
 .portfolio-accordion-section {
   display: flex;
   flex-direction: column;
