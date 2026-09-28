@@ -1399,16 +1399,13 @@ function buildPortfolioSlice(slice, index) {
       stepMedia.append(image);
       const copy = document.createElement("div");
       copy.className = "game-process-copy";
-      const number = document.createElement("p");
-      number.className = "game-process-number";
-      number.textContent = String(stepIndex + 1).padStart(2, "0");
       const heading = document.createElement("p");
       heading.className = "portfolio-slice-subtitle game-process-heading";
       heading.textContent = step.title;
       const blurb = document.createElement("p");
       blurb.className = "portfolio-slice-description game-process-description";
       blurb.textContent = step.description;
-      copy.append(number, heading, blurb);
+      copy.append(heading, blurb);
       article.append(stepMedia, copy);
       process.append(article);
     });

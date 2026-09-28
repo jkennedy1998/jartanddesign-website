@@ -25,10 +25,10 @@ the pickup
 Runs start at Pizza Dog. Grab the food, check the minimap, and loop back out — every wasted block is more time for the dogs to close in.
 
 ## step 3 title
-the hoard
+procedural generation and the hoard
 
 ## step 3 description
-The dogs never stop coming. Each day the hoards spawn bigger and faster, until quiet side streets turn into full chases and the whole map is barking.
+The neighborhood is procedurally generated, with islands that would interrupt a run pruned out so every street stays reachable. The dogs never stop coming either: each day the hoards spawn bigger and faster, until quiet side streets turn into full chases and the whole map is barking.
 
 ## finale title
 out in the wild

@@ -705,6 +705,9 @@ footer.site .tg-shell {
   object-fit: cover;
 }
 .game-process {
+  /* Folded with the description, like the intake-process: nothing but the
+     hero video shows until the read-more toggle opens the slice. */
+  display: none;
   flex-direction: column;
   gap: clamp(3.5rem, 9vw, 7rem);
   width: min(100%, 70rem);
@@ -712,6 +715,13 @@ footer.site .tg-shell {
   padding-top: 2.25rem;
   padding-bottom: clamp(2rem, 5vw, 4rem);
   border-top: 1px solid color-mix(in srgb, var(--slice-desc-color, #d8b4c6) 38%, transparent);
+}
+.portfolio-slice.is-expanded .game-banner-wrap,
+.portfolio-slice.is-expanded .game-process {
+  display: block;
+}
+.portfolio-slice.is-expanded .game-process {
+  display: flex;
 }
 .game-process-kicker,
 .game-process-number {
@@ -779,7 +789,10 @@ footer.site .tg-shell {
   aspect-ratio: 3 / 2;
   object-fit: cover;
 }
+/* Folded with the walkthrough: the key-art banner stays hidden until the
+   slice's read-more toggle opens it. */
 .game-banner-wrap {
+  display: none;
   overflow: hidden;
   background: #1c0b22;
 }
