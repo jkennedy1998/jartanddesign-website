@@ -1,9 +1,4 @@
-window.PORTFOLIO_PAGE_SOURCE = {
-  development: [
-    {
-      mediaDir: "source/development/2026/0/",
-      mediaFiles: {"images":["source/development/2026/0/image-1.jpg","source/development/2026/0/image-2.png","source/development/2026/0/image-3.png","source/development/2026/0/image-4.png","source/development/2026/0/image-5.png"],"videos":["source/development/2026/0/video-1.mp4","source/development/2026/0/video-2.mp4"]},
-      sourceText: `# entry-data
+# entry-data
 
 ## title
 One video, a whole product experience
@@ -23,8 +18,3 @@ intake-showcase
 - description: 5b3830
 - background: ffffff
 - brightness: light
-`
-    },
-    { sourceSlice: "thaum-painter" }
-  ]
-};

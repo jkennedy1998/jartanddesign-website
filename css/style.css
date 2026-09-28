@@ -522,6 +522,174 @@ footer.site .tg-shell {
 .portfolio-slice.is-accordion-open .portfolio-accordion {
   display: flex;
 }
+/* Development case study: kept folded with the standard slice description so
+   the first encounter stays a single quiet video, then opens into the system. */
+.intake-hero-wrap {
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  background: #fffaf2;
+}
+.intake-hero-video {
+  height: 100%;
+  object-fit: cover;
+}
+.intake-process {
+  display: none;
+  flex-direction: column;
+  gap: clamp(3.5rem, 9vw, 7rem);
+  width: min(100%, 70rem);
+  margin: 1.5rem auto 1rem;
+  padding-top: 2.25rem;
+  padding-bottom: clamp(2rem, 5vw, 4rem);
+  border-top: 1px solid color-mix(in srgb, var(--slice-desc-color, #5b3830) 38%, transparent);
+}
+.portfolio-slice.is-expanded .intake-process {
+  display: flex;
+}
+.intake-process-kicker,
+.intake-process-number {
+  margin: 0;
+  color: var(--slice-subtitle-color, inherit);
+  font-size: 0.78em;
+  font-weight: 320;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+.intake-process-step,
+.intake-interactive {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(13rem, 0.65fr);
+  align-items: center;
+  gap: clamp(1.25rem, 4vw, 4.5rem);
+}
+.intake-process-step:nth-of-type(odd) .intake-process-media {
+  order: 2;
+}
+.intake-process-step:nth-of-type(odd) .intake-process-copy {
+  order: 1;
+}
+.intake-process-media {
+  display: grid;
+  place-items: center;
+  position: relative;
+  aspect-ratio: 4 / 3;
+  min-height: 16rem;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--slice-background, #fffaf2) 80%, #ffffff);
+}
+/* Percent heights don't resolve against an aspect-ratio box, so the img used
+   to fall back to width-driven auto height and overflow-clip (cropping the
+   earring). Absolute fill makes object-fit actually contain inside the box. */
+.intake-process-media img {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+.intake-process-media video {
+  width: 100%;
+  height: 100%;
+  max-height: 38rem;
+  object-fit: contain;
+}
+/* Step 02 sits on pure white so J's hand-cropped white-bg diagram
+   blends into the box with no visible frame. */
+.intake-process-step:nth-of-type(2) .intake-process-media {
+  background: #ffffff;
+}
+.intake-process-step:nth-of-type(2) .intake-process-media img {
+  width: 84%;
+  height: 84%;
+}
+/* Step 01 plays the full-frame portrait intake video; a taller box keeps
+   the captured earring readable instead of a thin pillarboxed sliver. */
+.intake-process-step:nth-of-type(1) .intake-process-media {
+  aspect-ratio: 3 / 4;
+}
+/* Step 03 is the merged mask + retouch step showing the verbatim retouch
+   output (204x434 transparent PNG); portrait box, image eased down a notch. */
+.intake-process-step:nth-of-type(3) .intake-process-media {
+  aspect-ratio: 3 / 4;
+}
+.intake-process-step:nth-of-type(3) .intake-process-media img {
+  width: 72%;
+  height: 72%;
+}
+.intake-process-copy,
+.intake-interactive-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  max-width: 30rem;
+}
+.intake-process-heading,
+.intake-process-description {
+  margin: 0;
+}
+.intake-process-description {
+  line-height: 1.45;
+}
+.intake-interactive {
+  grid-template-columns: minmax(13rem, 0.65fr) minmax(0, 1.35fr);
+  padding-top: 1rem;
+  /* pull step 04 up toward step 03 — the section's uniform flex gap is
+     sized for the photo steps and reads as a dead zone here */
+  margin-top: clamp(-4rem, -3.5vw, -2rem);
+}
+.intake-earring-dial {
+  position: relative;
+  /* vertical room below the hang point must cover the scaled sprite
+     (canvas bottom = 458px x scale under the pivot, ~535px hovered, more
+     at full swing) or the earring clips against the dial's own edge;
+     44rem + a high hang point keeps the box fitted to the earring */
+  min-height: 44rem;
+  overflow: hidden;
+  background: radial-gradient(circle at 50% 32%, rgba(183, 64, 34, 0.11), transparent 48%);
+}
+/* Jelly hang (ported from the storefront board): the dangle is the pivot
+   the physics engine positions; the canvas rides it; the hitarea is the
+   narrow interaction plane. */
+.intake-earring-dial .earring-dangle {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 0;
+  height: 0;
+  z-index: 1;
+}
+.intake-earring-dial .earring-jelly {
+  position: absolute;
+  top: 0;
+  transform-origin: 50% 0;
+  pointer-events: none;
+}
+.intake-earring-dial .earring-jelly-hitarea {
+  position: absolute;
+  top: 0;
+  transform-origin: 50% 0;
+  cursor: grab;
+  touch-action: none;
+}
+.intake-earring-dial .earring-jelly-hitarea:active { cursor: grabbing; }
+.intake-earring-dial .earring-jelly-hitarea:focus-visible {
+  outline: 2px solid var(--slice-subtitle-color, #b74022);
+  outline-offset: 0.55rem;
+}
+@media (max-width: 680px) {
+  .intake-process-step,
+  .intake-interactive {
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+  }
+  .intake-process-step:nth-of-type(odd) .intake-process-media,
+  .intake-process-step:nth-of-type(odd) .intake-process-copy {
+    order: initial;
+  }
+  .intake-process-media { min-height: 12rem; }
+  .intake-earring-dial { min-height: 40rem; }
+}
 .portfolio-accordion-section {
   display: flex;
   flex-direction: column;

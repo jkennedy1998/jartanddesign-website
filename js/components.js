@@ -1197,6 +1197,157 @@ function buildPortfolioSlice(slice, index) {
     mediaWrap.append(video);
     inner.append(mediaWrap);
     appendStandardCopy();
+  } else if (slice.type === "intake-showcase") {
+    const media = slice.media || {};
+    const heroWrap = document.createElement("div");
+    heroWrap.className = "portfolio-slice-media-wrap intake-hero-wrap";
+    const hero = document.createElement("video");
+    hero.className = "portfolio-slice-media intake-hero-video";
+    hero.src = media.heroVideo || "";
+    hero.muted = true;
+    hero.loop = true;
+    hero.autoplay = true;
+    hero.playsInline = true;
+    hero.preload = "metadata";
+    hero.poster = media.heroPoster || "";
+    heroWrap.append(hero);
+    inner.append(heroWrap);
+    appendStandardCopy();
+
+    const process = document.createElement("section");
+    process.className = "intake-process";
+    process.setAttribute("aria-label", "Earring intake process");
+    const processTitle = document.createElement("p");
+    processTitle.className = "intake-process-kicker";
+    processTitle.textContent = "what one intake becomes";
+    process.append(processTitle);
+
+    const addStep = ({ number, title: stepTitle, description, src, type = "image" }) => {
+      const step = document.createElement("article");
+      step.className = "intake-process-step";
+      const mediaWrap = document.createElement("div");
+      mediaWrap.className = "intake-process-media";
+      const element = document.createElement(type === "video" ? "video" : "img");
+      element.src = src || "";
+      if (type === "video") {
+        element.muted = true;
+        element.loop = true;
+        element.autoplay = true;
+        element.playsInline = true;
+        element.preload = "metadata";
+      } else {
+        element.alt = stepTitle;
+        element.loading = "lazy";
+      }
+      mediaWrap.append(element);
+      const copy = document.createElement("div");
+      copy.className = "intake-process-copy";
+      const label = document.createElement("p");
+      label.className = "intake-process-number";
+      label.textContent = number;
+      const heading = document.createElement("p");
+      heading.className = "portfolio-slice-subtitle intake-process-heading";
+      heading.textContent = stepTitle;
+      const blurb = document.createElement("p");
+      blurb.className = "portfolio-slice-description intake-process-description";
+      blurb.textContent = description;
+      copy.append(label, heading, blurb);
+      step.append(mediaWrap, copy);
+      process.append(step);
+    };
+
+    addStep({
+      number: "01",
+      title: "capture a loop",
+      description: "Jesse captures one short iPhone loop against a white background, then sends it to the system. That is the whole upload: no staging area, no manual crop queue.",
+      src: media.captureVideo,
+      type: "video",
+    });
+    addStep({
+      number: "02",
+      title: "stabilize + crop",
+      description: "A handmade clay counterweight and its black bead give every take one dependable reference point. The system finds it, then crops immediately below it so every earring starts from the same pivot.",
+      src: media.stabilizedImage,
+    });
+    addStep({
+      number: "03",
+      title: "mask + retouch",
+      description: "With the motion stabilized, a Meta Segment Anything 3 mask follows the piece frame by frame, then one consistent color, vibrance, and contrast pass makes the material read clearly — preserving the small glass details and the transparent edge the storefront needs.",
+      src: media.previewImage,
+    });
+
+    const interactive = document.createElement("article");
+    interactive.className = "intake-interactive";
+    const interactiveCopy = document.createElement("div");
+    interactiveCopy.className = "intake-interactive-copy";
+    const finalNumber = document.createElement("p");
+    finalNumber.className = "intake-process-number";
+    finalNumber.textContent = "04";
+    const finalTitle = document.createElement("p");
+    finalTitle.className = "portfolio-slice-subtitle intake-process-heading";
+    finalTitle.textContent = "make it interactive";
+    const finalBlurb = document.createElement("p");
+    finalBlurb.className = "portfolio-slice-description intake-process-description";
+    finalBlurb.textContent = "The sequence becomes the product interaction. Drag the earring itself to turn the red gummy worm through its captured views; release it and it springs back home.";
+    interactiveCopy.append(finalNumber, finalTitle, finalBlurb);
+
+    const dial = document.createElement("div");
+    dial.className = "intake-earring-dial";
+    // Same jelly physics Jesse's storefront runs (js/dangle.js createJelly):
+    // the dial spring IS the frame sequence, the png pendulum-swings on its
+    // hook, quad corners jiggle on drag, and ambient breeze keeps it always
+    // moving a little. Fixed hang point, no board drop, no grate shadow.
+    const dangle = document.createElement("div");
+    dangle.className = "earring-dangle earring-dangle-jelly";
+    const canvas = document.createElement("canvas");
+    canvas.className = "earring-jelly";
+    // Extra transparent margin lets physics-driven motion grow without
+    // clipping (same padding scheme as the storefront board).
+    const pad = 24;
+    canvas.width = 204 + pad * 2;
+    canvas.height = 434 + pad * 2;
+    canvas.style.left = `${-(204 / 2 + pad)}px`;
+    canvas.style.top = `${-pad}px`;
+    // Narrow interaction plane like the storefront: the transparent sprite
+    // margins must not steal hovers meant for the copy beside the dial.
+    const hitArea = document.createElement("div");
+    hitArea.className = "earring-jelly-hitarea";
+    const hitWidth = Math.round(204 * 0.7);
+    hitArea.style.width = `${hitWidth}px`;
+    hitArea.style.height = `${434}px`;
+    hitArea.style.left = `${-hitWidth / 2}px`;
+    hitArea.setAttribute("aria-label", "Drag the red gummy worm earring: it swings with your drag and its lower half turns it through the captured views; release and it springs back home");
+    hitArea.setAttribute("role", "slider");
+    hitArea.setAttribute("aria-valuemin", "0");
+    hitArea.setAttribute("aria-valuemax", "31");
+    hitArea.setAttribute("aria-valuenow", "0");
+    hitArea.tabIndex = 0;
+    dangle.append(canvas, hitArea);
+    dial.append(dangle);
+
+    const frames = {
+      sheet: media.spriteImage || "",
+      fw: 204, fh: 434, cols: 8, rows: 4, count: 32, frameMs: 33,
+    };
+    const jellyState = window.Dangle.createJelly(dangle, {
+      // 16% from the dial top: hangs the sprite high in a dial sized to
+      // it, with swing + hover growth still inside the overflow-hidden box.
+      home: { x: 0.5, y: 0.16 },
+      frames, scale: 1.15, length: 150,
+      shadow: false,
+      stroke: false,
+      hoverScale: 1.12,
+      onHover: (state) => {
+        if (state) hitArea.setAttribute("aria-valuenow", String(Math.floor(state.frameF || 0)));
+      },
+    });
+    hitArea.addEventListener("keydown", (event) => {
+      if (event.key === "ArrowRight") { jellyState.dialVel += 4; event.preventDefault(); }
+      if (event.key === "ArrowLeft") { jellyState.dialVel -= 4; event.preventDefault(); }
+    });
+    interactive.append(interactiveCopy, dial);
+    process.append(interactive);
+    inner.append(process);
   } else if (slice.type === "carousel-media") {
     section.classList.add("portfolio-carousel-slice");
     const controls = document.createElement("div");
@@ -1722,6 +1873,24 @@ function resolveSketchbookSourceSlice(entry, source) {
             tone: itemAppearance.tone,
           };
         }),
+      },
+      ...shared,
+    };
+  }
+
+  if (preset === "intake-showcase") {
+    return {
+      type: "intake-showcase",
+      tone,
+      ...resolvedColors,
+      media: {
+        heroVideo: mediaFiles.videos?.[0] || "",
+        captureVideo: mediaFiles.videos?.[1] || "",
+        heroPoster: mediaFiles.images?.[0] || "",
+        maskImage: mediaFiles.images?.[1] || "",
+        previewImage: mediaFiles.images?.[2] || "",
+        spriteImage: mediaFiles.images?.[3] || "",
+        stabilizedImage: mediaFiles.images?.[4] || "",
       },
       ...shared,
     };
