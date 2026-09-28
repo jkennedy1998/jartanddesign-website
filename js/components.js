@@ -1312,11 +1312,14 @@ function buildPortfolioSlice(slice, index) {
     // margins must not steal hovers meant for the copy beside the dial.
     const hitArea = document.createElement("div");
     hitArea.className = "earring-jelly-hitarea";
-    const hitWidth = Math.round(204 * 0.7);
+    // Full-frame hit plane: the storefront narrows this to 70% because many
+    // earrings sit side by side and must not steal hovers; the showcase has
+    // one dial, so the whole frame grabs.
+    const hitWidth = Math.round(204);
     hitArea.style.width = `${hitWidth}px`;
     hitArea.style.height = `${434}px`;
     hitArea.style.left = `${-hitWidth / 2}px`;
-    hitArea.setAttribute("aria-label", "Drag the red gummy worm earring: it swings with your drag and its lower half turns it through the captured views; release and it springs back home");
+    hitArea.setAttribute("aria-label", "Drag the red gummy worm earring: it swings with your drag and turns through the captured views; release and it springs back home");
     hitArea.setAttribute("role", "slider");
     hitArea.setAttribute("aria-valuemin", "0");
     hitArea.setAttribute("aria-valuemax", "31");
@@ -1329,19 +1332,35 @@ function buildPortfolioSlice(slice, index) {
       sheet: media.spriteImage || "",
       fw: 204, fh: 434, cols: 8, rows: 4, count: 32, frameMs: 33,
     };
-    const jellyState = window.Dangle.createJelly(dangle, {
-      // 16% from the dial top: hangs the sprite high in a dial sized to
-      // it, with swing + hover growth still inside the overflow-hidden box.
-      home: { x: 0.5, y: 0.16 },
-      frames, scale: 1.15, length: 150,
-      shadow: false,
-      stroke: false,
-      hoverScale: 1.12,
-      onHover: (state) => {
-        if (state) hitArea.setAttribute("aria-valuenow", String(Math.floor(state.frameF || 0)));
-      },
-    });
+    // Lazy init: the dial lives inside the folded intake-process, and a
+    // display:none box gives createJelly zero-size geometry. Creating the
+    // jelly on the first expand guarantees it always initializes against a
+    // laid-out, visible dial — the same always-visible condition the
+    // storefront board has. (Canvas physics while hidden was the flaky part.)
+    let jellyState = null;
+    const initJelly = () => {
+      if (jellyState) return;
+      jellyState = window.Dangle.createJelly(dangle, {
+        // 16% from the dial top: hangs the sprite high in a dial sized to
+        // it, with swing + hover growth still inside the overflow-hidden box.
+        home: { x: 0.5, y: 0.16 },
+        frames, scale: 1.15, length: 150,
+        shadow: false,
+        stroke: false,
+        hoverScale: 1.12,
+        dialOnly: true,
+        onHover: (state) => {
+          if (state) hitArea.setAttribute("aria-valuenow", String(Math.floor(state.frameF || 0)));
+        },
+      });
+    };
+    if (section.classList.contains("is-expanded")) {
+      initJelly();
+    } else {
+      toggle?.addEventListener("click", initJelly, { once: true });
+    }
     hitArea.addEventListener("keydown", (event) => {
+      if (!jellyState) return;
       if (event.key === "ArrowRight") { jellyState.dialVel += 4; event.preventDefault(); }
       if (event.key === "ArrowLeft") { jellyState.dialVel -= 4; event.preventDefault(); }
     });

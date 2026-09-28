@@ -274,6 +274,11 @@ const SHADOW_PAD = 16; // sprite margin so blur + offset never clip
     // optional stroke — everything else (dial, swing, corners, breeze) is
     // the same physics the board runs
     home = null, shadow = true, stroke = true, hoverScale = HOVER_SCALE,
+    // showcase tuning: the storefront keeps a narrow hit plane (many
+    // earrings side by side must not steal hovers) and splits the plane
+    // into move/dial zones; a single showcase dial wants the whole frame
+    // grabbing and every drag spinning it.
+    dialOnly = false, hitRatio = 0.7,
   } = {}) {
     const canvas = dangle.querySelector("canvas.earring-jelly");
     const hitArea = dangle.querySelector(".earring-jelly-hitarea");
@@ -406,7 +411,8 @@ const SHADOW_PAD = 16; // sprite margin so blur + offset never clip
     attachDrag(state, hitArea, null, {
       // Lower half of the tight interaction plane = dial swipe zone; upper
       // half = grab/move. The painted canvas itself never captures input.
-      modeFor: (event) => {
+      // dialOnly showcases skip the split: the whole plane spins the dial.
+      modeFor: dialOnly ? () => "dial" : (event) => {
         const rect = hitArea.getBoundingClientRect();
         const localY = event.clientY - rect.top;
         return localY > rect.height * 0.5 ? "dial" : "move";
