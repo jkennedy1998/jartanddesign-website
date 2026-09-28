@@ -1354,14 +1354,27 @@ function buildPortfolioSlice(slice, index) {
     heroWrap.className = "portfolio-slice-media-wrap game-hero-wrap";
     const hero = document.createElement("video");
     hero.className = "portfolio-slice-media game-hero-video";
-    hero.src = media.heroVideo || "";
     hero.muted = true;
     hero.loop = true;
     hero.autoplay = true;
     hero.playsInline = true;
-    hero.preload = "metadata";
+    hero.preload = "auto";
+    hero.poster = media.heroPoster || "";
+    hero.src = media.heroVideo || "";
     heroWrap.append(hero);
     inner.append(heroWrap);
+    hero.play?.().catch(() => {});
+
+    if (media.bannerImage) {
+      const bannerWrap = document.createElement("div");
+      bannerWrap.className = "portfolio-slice-media-wrap game-banner-wrap";
+      const banner = document.createElement("img");
+      banner.className = "portfolio-slice-media game-banner";
+      banner.src = media.bannerImage;
+      banner.alt = `${slice.title} key art`;
+      bannerWrap.append(banner);
+      inner.append(bannerWrap);
+    }
     appendStandardCopy();
 
     // Same reveal rhythm as the earring slice's intake-process: the guided
@@ -1429,18 +1442,6 @@ function buildPortfolioSlice(slice, index) {
       process.append(finale);
     }
     inner.append(process);
-
-    if (media.bannerImage) {
-      const bannerWrap = document.createElement("div");
-      bannerWrap.className = "portfolio-slice-media-wrap game-banner-wrap";
-      const banner = document.createElement("img");
-      banner.className = "portfolio-slice-media game-banner";
-      banner.src = media.bannerImage;
-      banner.alt = `${slice.title} key art`;
-      banner.loading = "lazy";
-      bannerWrap.append(banner);
-      inner.append(bannerWrap);
-    }
   } else if (slice.type === "carousel-media") {
     section.classList.add("portfolio-carousel-slice");
     const controls = document.createElement("div");
@@ -2012,6 +2013,7 @@ function resolveSketchbookSourceSlice(entry, source) {
       ...resolvedColors,
       media: {
         heroVideo: mediaFiles.videos?.[0] || "",
+        heroPoster: entry["hero poster"] || "",
         bannerImage: mediaFiles.images?.[0] || "",
         walkthroughImages: (mediaFiles.images || []).slice(1, 4),
         finaleImages: (mediaFiles.images || []).slice(4, 6),
