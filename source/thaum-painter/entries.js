@@ -21,7 +21,7 @@ this program is free for all; see the license documentation in the download for 
 happy painting!
 - J
 ## release notes
-v0.1.7 · **Full Changelog**: https://github.com/jkennedy1998/thaum-painter/compare/v0.1.6...v0.1.7
+v0.1.8 · **Full Changelog**: https://github.com/jkennedy1998/thaum-painter/compare/v0.1.7...v0.1.8
 
 ## preset
 carousel-media
