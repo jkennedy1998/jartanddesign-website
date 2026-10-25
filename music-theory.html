@@ -6,6 +6,7 @@
   <title>Music Theory — J Art &amp; Design</title>
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="music-theory/music-theory.css">
+  <link rel="stylesheet" href="music-theory/chord-writer.css">
 </head>
 <body>
   <header class="site"></header>
@@ -25,9 +26,33 @@
         <div class="music-theory-keyboard" data-keyboard aria-label="Piano"></div>
       </div>
     </section>
+    <section class="portfolio-slice music-theory-slice chord-writer-slice is-active" aria-labelledby="chord-writer-title">
+      <div class="portfolio-slice-inner music-theory-shell chord-writer-shell">
+        <div class="music-theory-copy">
+          <p id="chord-writer-title" class="music-theory-title">chord writer</p>
+          <p class="music-theory-help">press the exact notes you'd actually play on guitar or piano, hit save chord, then stack the cards into verses, choruses, or whatever sections you're working out.</p>
+        </div>
+        <div class="music-theory-selectors chord-writer-actions" aria-label="Chord controls">
+          <button class="music-random-button" type="button" data-save-chord>save chord</button>
+          <button class="music-random-button" type="button" data-clear-chord>clear</button>
+        </div>
+        <div class="music-theory-board" data-chord-fretboard aria-label="Fretboard"></div>
+        <div class="music-theory-keyboard" data-chord-keyboard aria-label="Piano"></div>
+        <div class="chord-writer-groups" data-chord-groups aria-label="Chord sections"></div>
+        <div class="music-theory-selectors chord-writer-actions chord-writer-footer-actions" aria-label="Song controls">
+          <button class="music-random-button chord-writer-add-group" type="button" data-add-group>+ section</button>
+          <button class="music-random-button" type="button" data-clear-song>clear song</button>
+          <button class="music-random-button" type="button" data-load-text>load</button>
+          <button class="music-random-button" type="button" data-copy-text>copy as text</button>
+          <button class="music-random-button" type="button" data-save-text>save as text</button>
+          <input class="chord-writer-load-input" type="file" accept="application/json,.json" data-load-file hidden>
+        </div>
+      </div>
+    </section>
   </main>
   <footer class="site"></footer>
   <script src="js/components.js"></script>
   <script src="music-theory/music-theory.js"></script>
+  <script src="music-theory/chord-writer.js"></script>
 </body>
 </html>

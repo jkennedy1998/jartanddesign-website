@@ -43,6 +43,12 @@
   const intervalFor = (note) => (noteIndex(note) - noteIndex(state.root) + NOTES.length) % NOTES.length;
   const colorFor = (note) => INTERVAL_COLORS[intervalFor(note)];
 
+  const ROOT_EVENT = "music-theory:root";
+  const publishRoot = () => {
+    document.documentElement.dataset.musicRoot = state.root;
+    window.dispatchEvent(new CustomEvent(ROOT_EVENT, { detail: { root: state.root } }));
+  };
+
   const makeButton = (label, className, dataName, dataValue, ariaLabel) => {
     const button = document.createElement("button");
     button.type = "button";
@@ -202,6 +208,7 @@
     state.selected = noteSetFor(state.root, intervals);
     state.scale = scaleForIntervals(intervals);
     render();
+    publishRoot();
   };
 
   const setScale = (nextScale) => {
@@ -234,6 +241,7 @@
     state.scale = nextScale;
     state.selected = noteSetFor(state.root, scaleIntervals(state.scale));
     render();
+    publishRoot();
   });
   const setPianoHover = (key, isHovered) => {
     keyboardMount.querySelectorAll(`[data-piano-key="${key}"]`).forEach((element) => {
@@ -276,4 +284,5 @@
   });
 
   setScale(state.scale);
+  publishRoot();
 })();

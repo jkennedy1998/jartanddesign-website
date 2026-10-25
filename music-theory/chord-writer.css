@@ -1,0 +1,141 @@
+.chord-writer-actions {
+  display: flex;
+  gap: 1rem;
+}
+
+.chord-open-toggle {
+  border: 0;
+  background: transparent;
+  padding: 0;
+  font: inherit;
+  cursor: pointer;
+}
+
+.chord-writer-groups {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.chord-group {
+  cursor: pointer;
+}
+
+.chord-group-header {
+  display: flex;
+  align-items: center;
+  gap: 1ch;
+  margin-bottom: 1rem;
+}
+
+.chord-group-move,
+.chord-card-controls {
+  display: flex;
+  gap: 1ch;
+}
+
+.chord-move-step {
+  width: 2ch;
+  text-align: center;
+}
+
+.chord-move-step:disabled {
+  color: transparent;
+  cursor: default;
+}
+
+.chord-group-name {
+  color: #FEFFE5;
+  font-weight: 160;
+}
+
+.chord-group.is-active .chord-group-name {
+  color: #E36325;
+  font-weight: 320;
+}
+
+.chord-group-rename {
+  background: #1c1424;
+  color: #FEFFE5;
+  border: 1px solid #E36325;
+  padding: 0 1ch;
+  font: inherit;
+}
+
+.chord-group-delete {
+  margin-left: auto;
+}
+
+.chord-group-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4ch;
+}
+
+.chord-card {
+  cursor: pointer;
+}
+
+.chord-card-editing-tag {
+  color: #E36325;
+  font-weight: 320;
+}
+
+.chord-card-move-select {
+  border: 0;
+  background: transparent;
+  padding: 0;
+  color: #AC9D7C;
+  font: inherit;
+  font-weight: 80;
+  cursor: pointer;
+}
+
+.chord-card-move-select:hover,
+.chord-card-move-select:focus-visible {
+  color: #E36325;
+  outline: none;
+}
+
+.chord-card-move-select:disabled {
+  color: transparent;
+  cursor: default;
+}
+
+.chord-card-move-select option {
+  background: #1c1424;
+  color: #FEFFE5;
+}
+
+.chord-card-fretboard {
+  line-height: 1;
+}
+
+.chord-card-fret-row {
+  min-width: 0;
+  width: max-content;
+}
+
+.chord-card-piano {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1ch;
+}
+
+.chord-card-piano-note {
+  color: var(--music-note-color);
+  font-weight: 320;
+}
+
+.chord-writer-footer-actions {
+  margin-top: 1rem;
+}
+
+.chord-writer-load-input {
+  display: none;
+}
+
+.chord-writer-add-group {
+  justify-self: start;
+  margin-left: 0;
+}
