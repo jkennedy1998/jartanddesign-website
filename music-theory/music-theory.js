@@ -46,7 +46,8 @@
   const ROOT_EVENT = "music-theory:root";
   const publishRoot = () => {
     document.documentElement.dataset.musicRoot = state.root;
-    window.dispatchEvent(new CustomEvent(ROOT_EVENT, { detail: { root: state.root } }));
+    document.documentElement.dataset.musicScaleNotes = [...state.selected].join(",");
+    window.dispatchEvent(new CustomEvent(ROOT_EVENT, { detail: { root: state.root, scale: state.scale, notes: [...state.selected] } }));
   };
 
   const makeButton = (label, className, dataName, dataValue, ariaLabel) => {
@@ -280,6 +281,7 @@
       else state.selected.add(note);
       state.scale = scaleForIntervals(intervalsForSelection());
       render();
+      publishRoot();
     });
   });
 

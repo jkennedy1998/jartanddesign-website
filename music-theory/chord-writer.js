@@ -681,6 +681,15 @@
     renderGroups();
   });
 
+  window.addEventListener("music-theory:live-note", (event) => {
+    const note = event.detail?.note;
+    if (!note) return;
+    const id = pianoIdForNote(note);
+    if (state.pianoSelected.has(id)) return;
+    state.pianoSelected.add(id);
+    renderKeyboard();
+  });
+
   const notesForChord = (chord) => {
     const notes = [];
     chord.guitar.forEach((entry) => { if (!notes.includes(entry.note)) notes.push(entry.note); });

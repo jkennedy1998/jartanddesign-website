@@ -1,6 +1,6 @@
 .key-guitar-octave {
   display: grid;
-  grid-template-columns: 12ch 6ch auto;
+  grid-template-columns: 12ch 3ch 4ch 3ch auto;
   align-items: center;
   gap: 1ch;
 }
@@ -9,8 +9,10 @@
 .key-guitar-key {
   border: 0;
   background: transparent;
+  border-radius: 2px;
   font: inherit;
   cursor: pointer;
+  transition: background-color 60ms ease-out;
 }
 
 .key-guitar-open:hover,
@@ -24,4 +26,10 @@
 .key-guitar-open.is-pressed,
 .key-guitar-key.is-pressed {
   font-weight: 640;
+  background-color: color-mix(in srgb, var(--music-note-color) 50%, transparent);
+}
+
+.key-guitar-open.is-scale-dim,
+.key-guitar-key.is-scale-dim {
+  opacity: 0.35;
 }

@@ -4,9 +4,10 @@
   const FRET_MARKERS = new Set([3, 5, 7, 9, 12]);
   const MAX_FRETS = 12;
   const TUNING_LIMIT = 24;
-  const SOUND_OPTIONS = ["pluck", "sine", "saw"];
+  const SOUND_OPTIONS = ["pluck", "sine", "saw", "square", "bell", "meow"];
   const ATTACK_STEPS = [1, 2, 5, 10, 20, 50, 100];
   const DECAY_STEPS = [0.2, 0.5, 1, 1.5, 2, 3, 4];
+  const OCTAVE_BASE_LIMIT = 3;
   const STRINGS = [
     { open: "G", octave: 3, chars: "1234567890-=", codes: ["Digit1", "Digit2", "Digit3", "Digit4", "Digit5", "Digit6", "Digit7", "Digit8", "Digit9", "Digit0", "Minus", "Equal"] },
     { open: "D", octave: 3, chars: "qwertyuiop[]", codes: ["KeyQ", "KeyW", "KeyE", "KeyR", "KeyT", "KeyY", "KeyU", "KeyI", "KeyO", "KeyP", "BracketLeft", "BracketRight"] },
@@ -20,29 +21,34 @@
   const soundMount = document.querySelector("[data-key-guitar-sound]");
   const attackMount = document.querySelector("[data-key-guitar-attack]");
   const decayMount = document.querySelector("[data-key-guitar-decay]");
-  if (!boardMount || !octaveMount || !controlsMount || !soundMount || !attackMount || !decayMount) return;
+  const latchMount = document.querySelector("[data-key-guitar-latch]");
+  if (!boardMount || !octaveMount || !controlsMount || !soundMount || !attackMount || !decayMount || !latchMount) return;
 
   const noteIndex = (note) => NOTES.indexOf(note);
   const noteAt = (note, offset) => NOTES[(noteIndex(note) + offset + NOTES.length) % NOTES.length];
 
   const state = {
-    octaveShift: 0,
+    octaveBase: 0,
+    octaveHold: 0,
     tuningOffsets: STRINGS.map(() => 0),
     pressed: new Set(),
     sound: "pluck",
     attackIndex: 2,
     decayIndex: 3,
+    latch: false,
+    latched: new Set(),
   };
   const attackSeconds = () => ATTACK_STEPS[state.attackIndex] / 1000;
   const decaySeconds = () => DECAY_STEPS[state.decayIndex];
-  const isSustained = () => state.sound !== "pluck";
+  const isSustained = () => state.sound === "sine" || state.sound === "saw" || state.sound === "square";
   let root = document.documentElement.dataset.musicRoot || "C";
+  let scaleNotes = new Set((document.documentElement.dataset.musicScaleNotes || "").split(",").filter(Boolean));
 
   const intervalFor = (note) => (noteIndex(note) - noteIndex(root) + NOTES.length) % NOTES.length;
   const colorFor = (note) => INTERVAL_COLORS[intervalFor(note)];
   const hits = new Map();
   STRINGS.forEach((string, stringIndex) => {
-    string.codes.forEach((code, fret) => hits.set(code, { stringIndex, fret, char: string.chars[fret] }));
+    string.codes.forEach((code, fret) => hits.set(code, { stringIndex, fret, char: string.chars[fret], code }));
   });
 
   const span = (text, className = "") => Object.assign(document.createElement("span"), { className, textContent: text });
@@ -102,15 +108,18 @@
     voices.set(code, {});
   };
 
+  const TONE_TYPES = { sine: "sine", saw: "sawtooth", square: "square" };
+  const TONE_PEAK = { sine: 0.8, saw: 0.5, square: 0.35 };
+
   const startTone = (ctx, frequency, code) => {
     const now = ctx.currentTime;
     const out = makeOutput(ctx);
     const env = ctx.createGain();
     env.gain.setValueAtTime(0.0001, now);
-    env.gain.exponentialRampToValueAtTime(state.sound === "saw" ? 0.5 : 0.8, now + Math.max(0.002, attackSeconds()));
+    env.gain.exponentialRampToValueAtTime(TONE_PEAK[state.sound] ?? 0.8, now + Math.max(0.002, attackSeconds()));
     env.connect(out);
     const osc = ctx.createOscillator();
-    osc.type = state.sound === "saw" ? "sawtooth" : "sine";
+    osc.type = TONE_TYPES[state.sound] ?? "sine";
     osc.frequency.value = frequency;
     osc.connect(env);
     osc.start(now);
@@ -123,6 +132,64 @@
     });
   };
 
+  const startBell = (ctx, frequency, code) => {
+    const now = ctx.currentTime;
+    const attack = Math.max(0.002, attackSeconds());
+    const length = attack + decaySeconds();
+    const out = makeOutput(ctx);
+    const env = ctx.createGain();
+    env.gain.setValueAtTime(0.0001, now);
+    env.gain.exponentialRampToValueAtTime(1, now + attack);
+    env.gain.exponentialRampToValueAtTime(0.0001, now + length);
+    env.connect(out);
+    const partials = [
+      { ratio: 1, gain: 0.5 },
+      { ratio: 2.41, gain: 0.3 },
+      { ratio: 3.9, gain: 0.18 },
+    ];
+    partials.forEach(({ ratio, gain }) => {
+      const partialGain = ctx.createGain();
+      partialGain.gain.value = gain;
+      partialGain.connect(env);
+      const osc = ctx.createOscillator();
+      osc.type = "sine";
+      osc.frequency.value = frequency * ratio;
+      osc.connect(partialGain);
+      osc.start(now);
+      osc.stop(now + length + 0.1);
+    });
+    voices.set(code, {});
+  };
+
+  const startMeow = (ctx, frequency, code) => {
+    const now = ctx.currentTime;
+    const attack = Math.max(0.01, attackSeconds());
+    const length = Math.max(0.25, attack + decaySeconds() * 0.6);
+    const out = makeOutput(ctx);
+    const formant = ctx.createBiquadFilter();
+    formant.type = "bandpass";
+    formant.frequency.value = frequency * 2.5;
+    formant.Q.value = 6;
+    const env = ctx.createGain();
+    env.gain.setValueAtTime(0.0001, now);
+    env.gain.exponentialRampToValueAtTime(0.9, now + attack);
+    env.gain.exponentialRampToValueAtTime(0.0001, now + length);
+    const osc = ctx.createOscillator();
+    osc.type = "sawtooth";
+    osc.frequency.setValueAtTime(frequency * 0.85, now);
+    osc.frequency.linearRampToValueAtTime(frequency * 1.3, now + length * 0.35);
+    osc.frequency.linearRampToValueAtTime(frequency * 0.9, now + length);
+    osc.connect(formant).connect(env).connect(out);
+    osc.start(now);
+    osc.stop(now + length + 0.1);
+    voices.set(code, {});
+  };
+
+  const LIVE_NOTE_EVENT = "music-theory:live-note";
+  const publishLiveNote = (midi) => {
+    window.dispatchEvent(new CustomEvent(LIVE_NOTE_EVENT, { detail: { note: NOTES[((midi % 12) + 12) % 12] } }));
+  };
+
   const noteOn = (midi, code) => {
     const ctx = ensureAudio();
     const existing = voices.get(code);
@@ -130,7 +197,10 @@
     voices.delete(code);
     const frequency = frequencyFor(midi);
     if (state.sound === "pluck") startPluck(ctx, frequency, code);
+    else if (state.sound === "bell") startBell(ctx, frequency, code);
+    else if (state.sound === "meow") startMeow(ctx, frequency, code);
     else startTone(ctx, frequency, code);
+    publishLiveNote(midi);
   };
 
   const noteOff = (code) => {
@@ -143,7 +213,7 @@
   const midiFor = (stringIndex, fret) => {
     const string = STRINGS[stringIndex];
     return (string.octave + 1) * 12 + noteIndex(string.open)
-      + state.tuningOffsets[stringIndex] + fret + state.octaveShift * 12;
+      + state.tuningOffsets[stringIndex] + fret + (state.octaveBase + state.octaveHold) * 12;
   };
 
   const keyFor = (code) => boardMount.querySelector(`[data-key-guitar-code="${code}"]`);
@@ -160,8 +230,9 @@
   };
 
   const renderOctave = () => {
+    const total = state.octaveBase + state.octaveHold;
     const value = octaveMount.querySelector("[data-key-guitar-octave-value]");
-    if (value) value.textContent = state.octaveShift > 0 ? `+${state.octaveShift}` : String(state.octaveShift);
+    if (value) value.textContent = total > 0 ? `+${total}` : String(total);
   };
 
   const renderControls = () => {
@@ -186,6 +257,18 @@
     renderSelector(soundMount, "sound", state.sound, "sound");
     renderSelector(attackMount, "attack", `${ATTACK_STEPS[state.attackIndex]}ms`, "attack");
     renderSelector(decayMount, "decay", `${DECAY_STEPS[state.decayIndex]}s`, "decay");
+    renderSelector(latchMount, "latch", state.latch ? "on" : "off", "latch");
+  };
+
+  const setLatch = (value) => {
+    state.latch = value;
+    if (!value) {
+      state.latched.forEach((code) => {
+        const hit = hits.get(code);
+        if (hit) release(hit);
+      });
+      state.latched.clear();
+    }
   };
 
   const makeStepButton = (stringIndex, direction) => {
@@ -214,9 +297,10 @@
       const stringTuning = document.createElement("span");
       stringTuning.className = "music-string-tuning";
       const openNote = noteAt(string.open, state.tuningOffsets[stringIndex]);
+      const openInScale = scaleNotes.size === 0 || scaleNotes.has(openNote);
       const openLabel = document.createElement("button");
       openLabel.type = "button";
-      openLabel.className = "music-string-label is-on key-guitar-open";
+      openLabel.className = `music-string-label is-on key-guitar-open${openInScale ? "" : " is-scale-dim"}`;
       openLabel.dataset.kgOpen = String(stringIndex);
       openLabel.textContent = openNote;
       openLabel.style.setProperty("--music-note-color", colorFor(openNote));
@@ -229,9 +313,10 @@
           continue;
         }
         const note = noteAt(openNote, fret);
+        const inScale = scaleNotes.size === 0 || scaleNotes.has(note);
         const cell = document.createElement("button");
         cell.type = "button";
-        cell.className = `music-fret-note is-on key-guitar-key${state.pressed.has(string.codes[fret]) ? " is-pressed" : ""}`;
+        cell.className = `music-fret-note is-on key-guitar-key${state.pressed.has(string.codes[fret]) ? " is-pressed" : ""}${inScale ? "" : " is-scale-dim"}`;
         cell.dataset.keyGuitarCode = string.codes[fret];
         cell.textContent = string.chars[fret];
         cell.style.setProperty("--music-note-color", colorFor(note));
@@ -251,6 +336,7 @@
 
   window.addEventListener("music-theory:root", (event) => {
     root = event.detail?.root || root;
+    scaleNotes = new Set(event.detail?.notes || []);
     render();
   });
 
@@ -264,33 +350,60 @@
       state.attackIndex = Math.max(0, Math.min(ATTACK_STEPS.length - 1, state.attackIndex + stepDirection));
     } else if (step.dataset.kgDirection === "decay") {
       state.decayIndex = Math.max(0, Math.min(DECAY_STEPS.length - 1, state.decayIndex + stepDirection));
+    } else if (step.dataset.kgDirection === "octave") {
+      state.octaveBase = Math.max(-OCTAVE_BASE_LIMIT, Math.min(OCTAVE_BASE_LIMIT, state.octaveBase + stepDirection));
+      renderOctave();
+    } else if (step.dataset.kgDirection === "latch") {
+      setLatch(!state.latch);
     }
     renderControls();
   });
 
   boardMount.addEventListener("click", (event) => {
     const step = event.target.closest("[data-kg-tuning-direction]");
-    if (step) {
-      const stringIndex = Number(step.dataset.kgStringIndex);
-      state.tuningOffsets[stringIndex] = Math.max(-TUNING_LIMIT, Math.min(TUNING_LIMIT,
-        state.tuningOffsets[stringIndex] + Number(step.dataset.kgTuningDirection)));
-      render();
-      return;
-    }
+    if (!step) return;
+    const stringIndex = Number(step.dataset.kgStringIndex);
+    state.tuningOffsets[stringIndex] = Math.max(-TUNING_LIMIT, Math.min(TUNING_LIMIT,
+      state.tuningOffsets[stringIndex] + Number(step.dataset.kgTuningDirection)));
+    render();
+  });
+
+  const triggerOpenString = (stringIndex) => {
+    const open = boardMount.querySelector(`[data-kg-open="${stringIndex}"]`);
+    if (!open) return;
+    const code = `open-${stringIndex}`;
+    noteOn(midiFor(stringIndex, 0), code);
+    flashCell(open);
+    if (isSustained()) window.setTimeout(() => noteOff(code), 250);
+  };
+
+  const triggerFretCell = (cell) => {
+    const hit = hits.get(cell.dataset.keyGuitarCode);
+    if (!hit) return;
+    noteOn(midiFor(hit.stringIndex, hit.fret), `click-${hit.code}`);
+    flashCell(cell);
+    if (isSustained()) window.setTimeout(() => noteOff(`click-${hit.code}`), 250);
+  };
+
+  let isDragStrumming = false;
+  window.addEventListener("pointerup", () => { isDragStrumming = false; });
+  window.addEventListener("pointercancel", () => { isDragStrumming = false; });
+
+  boardMount.addEventListener("pointerdown", (event) => {
+    if (event.target.closest("[data-kg-tuning-direction]")) return;
+    isDragStrumming = true;
     const open = event.target.closest("[data-kg-open]");
-    const pluckCode = open ? `open-${open.dataset.kgOpen}` : null;
-    if (open) {
-      noteOn(midiFor(Number(open.dataset.kgOpen), 0), pluckCode);
-      flashCell(open);
-    }
+    if (open) { triggerOpenString(Number(open.dataset.kgOpen)); return; }
     const cell = event.target.closest("[data-key-guitar-code]");
-    if (cell) {
-      const hit = hits.get(cell.dataset.keyGuitarCode);
-      if (hit) noteOn(midiFor(hit.stringIndex, hit.fret), `click-${hit.code}`);
-      flashCell(cell);
-      if (hit && isSustained()) window.setTimeout(() => noteOff(`click-${hit.code}`), 250);
-    }
-    if (pluckCode && isSustained()) window.setTimeout(() => noteOff(pluckCode), 250);
+    if (cell) triggerFretCell(cell);
+  });
+
+  boardMount.addEventListener("pointerover", (event) => {
+    if (!isDragStrumming) return;
+    const open = event.target.closest("[data-kg-open]");
+    if (open) { triggerOpenString(Number(open.dataset.kgOpen)); return; }
+    const cell = event.target.closest("[data-key-guitar-code]");
+    if (cell) triggerFretCell(cell);
   });
 
   const isTypingTarget = (target) => target instanceof HTMLElement
@@ -298,12 +411,12 @@
 
   window.addEventListener("keydown", (event) => {
     if (event.key === "Shift") {
-      state.octaveShift = 1;
+      state.octaveHold = 1;
       renderOctave();
       return;
     }
     if (event.key === "Control") {
-      state.octaveShift = -1;
+      state.octaveHold = -1;
       renderOctave();
       return;
     }
@@ -313,22 +426,33 @@
     event.preventDefault();
     if (state.pressed.has(event.code)) return;
     state.pressed.add(event.code);
-    press(hit);
+    if (state.latch && state.latched.has(event.code)) {
+      state.latched.delete(event.code);
+      release(hit);
+    } else {
+      press(hit);
+      if (state.latch) state.latched.add(event.code);
+    }
   });
 
   window.addEventListener("keyup", (event) => {
     if (event.key === "Shift" || event.key === "Control") {
-      state.octaveShift = 0;
+      state.octaveHold = 0;
       renderOctave();
+      return;
     }
     const hit = hits.get(event.code);
-    if (hit && state.pressed.delete(event.code)) release(hit);
+    if (!hit) return;
+    state.pressed.delete(event.code);
+    if (!(state.latch && state.latched.has(event.code))) release(hit);
   });
 
   window.addEventListener("blur", () => {
-    state.pressed.forEach(release);
+    state.pressed.forEach((code) => {
+      if (!(state.latch && state.latched.has(code))) release(hits.get(code));
+    });
     state.pressed.clear();
-    state.octaveShift = 0;
+    state.octaveHold = 0;
     renderOctave();
   });
 
