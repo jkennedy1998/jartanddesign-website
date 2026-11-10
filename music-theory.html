@@ -54,9 +54,12 @@
       <div class="portfolio-slice-inner music-theory-shell">
         <div class="music-theory-copy">
           <p id="key-guitar-title" class="music-theory-title">computer keyboard instrumentation</p>
-          <p class="music-theory-help">guitar on your laptop keyboard. the bottom row is the low E string, z is fret 0, each row above is the next string up. hold shift for an octave up, control for an octave down. sound starts on your first press.</p>
+          <p class="music-theory-help">guitar on your laptop keyboard. the bottom row is the low E string, z is fret 0, each row above is the next string up. hold shift for an octave up, control for an octave down. pick a sound and tune its envelope below — sound starts on your first press.</p>
         </div>
-        <div class="music-theory-selectors" aria-label="Keyboard guitar controls">
+        <div class="music-theory-selectors" aria-label="Keyboard guitar controls" data-key-guitar-controls>
+          <div class="music-selector" data-key-guitar-sound></div>
+          <div class="music-selector" data-key-guitar-attack></div>
+          <div class="music-selector" data-key-guitar-decay></div>
           <div class="key-guitar-octave" data-key-guitar-octave>
             <span class="music-selector-label">octave :</span>
             <span class="music-selector-value" data-key-guitar-octave-value>0</span>
