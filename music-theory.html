@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="music-theory/music-theory.css">
   <link rel="stylesheet" href="music-theory/chord-writer.css">
+  <link rel="stylesheet" href="music-theory/keyboard-guitar.css">
 </head>
 <body>
   <header class="site"></header>
@@ -49,10 +50,27 @@
         </div>
       </div>
     </section>
+    <section class="portfolio-slice music-theory-slice key-guitar-slice is-active" aria-labelledby="key-guitar-title">
+      <div class="portfolio-slice-inner music-theory-shell">
+        <div class="music-theory-copy">
+          <p id="key-guitar-title" class="music-theory-title">computer keyboard instrumentation</p>
+          <p class="music-theory-help">guitar on your laptop keyboard. the bottom row is the low E string, z is fret 0, each row above is the next string up. hold shift for an octave up, control for an octave down. sound starts on your first press.</p>
+        </div>
+        <div class="music-theory-selectors" aria-label="Keyboard guitar controls">
+          <div class="key-guitar-octave" data-key-guitar-octave>
+            <span class="music-selector-label">octave :</span>
+            <span class="music-selector-value" data-key-guitar-octave-value>0</span>
+            <span class="music-selector-label">hold shift = up · hold ctrl = down</span>
+          </div>
+        </div>
+        <div class="music-theory-board" data-key-guitar aria-label="Keyboard guitar"></div>
+      </div>
+    </section>
   </main>
   <footer class="site"></footer>
   <script src="js/components.js"></script>
   <script src="music-theory/music-theory.js"></script>
   <script src="music-theory/chord-writer.js"></script>
+  <script src="music-theory/keyboard-guitar.js"></script>
 </body>
 </html>

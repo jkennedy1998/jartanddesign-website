@@ -1,0 +1,47 @@
+.key-guitar-octave {
+  display: grid;
+  grid-template-columns: 12ch 6ch auto;
+  align-items: center;
+  gap: 1ch;
+}
+
+.key-guitar-open {
+  cursor: pointer;
+}
+
+.key-guitar-open.is-off {
+  color: var(--music-note-color);
+  font-weight: 80;
+}
+
+.key-guitar-open:hover,
+.key-guitar-open:focus-visible {
+  font-weight: 640;
+  outline: none;
+}
+
+.key-guitar-key {
+  width: 100%;
+  min-height: 1em;
+  border: 0;
+  background: transparent;
+  padding: 0 1ch;
+  color: #6E6350;
+  font: inherit;
+  font-weight: 80;
+  line-height: 1;
+  text-align: left;
+  cursor: pointer;
+}
+
+.key-guitar-key:hover,
+.key-guitar-key:focus-visible {
+  color: var(--music-note-color);
+  font-weight: 160;
+  outline: none;
+}
+
+.key-guitar-key.is-pressed {
+  color: var(--music-note-color);
+  font-weight: 640;
+}
