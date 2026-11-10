@@ -1,0 +1,44 @@
+name: Deploy to GitHub Pages
+
+# Legacy branch-based Jekyll Pages builds stopped being picked up (runs stuck
+# queued / errored instantly), so deploys now run through GitHub Actions.
+# _postmedia is excluded from the published site: it is staging media served
+# via raw.githubusercontent.com and would push the published site over the
+# 1 GB Pages limit.
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+permissions:
+  pages: write
+  id-token: write
+  contents: read
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Prepare publish directory (exclude staging media)
+        run: |
+          mkdir -p _site
+          rsync -a --exclude='.git/' --exclude='_postmedia/' --exclude='.github/' ./ _site/
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
