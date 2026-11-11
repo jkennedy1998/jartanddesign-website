@@ -4,7 +4,7 @@
   const FRET_MARKERS = new Set([3, 5, 7, 9, 12]);
   const MAX_FRETS = 12;
   const TUNING_LIMIT = 24;
-  const SOUND_OPTIONS = ["pluck", "sine", "saw", "square", "bell", "organ", "meow"];
+  const SOUND_OPTIONS = ["pluck", "sine", "saw", "square", "bell", "organ", "ep", "pad", "meow"];
   const ONE_SHOT_SOUNDS = new Set(["pluck", "bell", "meow"]);
   const ENV_COLS = 32;
   const ENV_ROWS = 9;
@@ -100,9 +100,17 @@
     };
   };
 
-  const makeOutput = (ctx) => {
+  const makeOutput = (ctx, frequency) => {
     const out = ctx.createGain();
     out.gain.value = 0.2;
+    if (ctx.createStereoPanner && frequency) {
+      // subtle keyboard-style spread: low notes left, high notes right
+      const midi = 69 + 12 * Math.log2(frequency / 440);
+      const pan = ctx.createStereoPanner();
+      pan.pan.value = Math.max(-0.4, Math.min(0.4, ((midi - 60) / 24) * 0.4));
+      out.connect(pan).connect(ctx.destination);
+      return out;
+    }
     out.connect(ctx.destination);
     return out;
   };
@@ -112,7 +120,7 @@
     const { a, d, r, s } = envStages();
     const floor = oneShotFloor(s, 1);
     const length = a + d + r;
-    const out = makeOutput(ctx);
+    const out = makeOutput(ctx, frequency);
     const filter = ctx.createBiquadFilter();
     filter.type = "lowpass";
     filter.frequency.setValueAtTime(Math.min(frequency * 7, 7000), now);
@@ -141,75 +149,79 @@
     voices.set(code, { cancel: cancelVoice(ctx, env, [osc, sub]) });
   };
 
+  // sustained-voice helpers: shared a/d envelope shape and release for held sounds
+  const sustainEnvelope = (ctx, stages, peak) => {
+    const { a, d, s } = stages;
+    const env = ctx.createGain();
+    const now = ctx.currentTime;
+    env.gain.setValueAtTime(0.0001, now);
+    env.gain.exponentialRampToValueAtTime(peak, now + Math.max(0.002, a));
+    env.gain.exponentialRampToValueAtTime(Math.max(0.0002, peak * Math.max(0.02, s)), now + a + d);
+    return env;
+  };
+
+  const releaseVoice = (ctx, env, sources, r) => (time) => {
+    const at = Math.max(time, ctx.currentTime);
+    env.gain.setTargetAtTime(0.0001, at, Math.max(0.02, r / 3));
+    sources.forEach((osc) => {
+      try { osc.stop(at + r + 0.3); } catch { /* already stopped */ }
+    });
+  };
+
   const TONE_TYPES = { sine: "sine", saw: "sawtooth", square: "square" };
   const TONE_PEAK = { sine: 0.8, saw: 0.5, square: 0.35 };
 
   const startTone = (ctx, frequency, code) => {
-    const now = ctx.currentTime;
-    const { a, d, r, s } = envStages();
+    const stages = envStages();
     const peak = TONE_PEAK[state.sound] ?? 0.8;
-    const out = makeOutput(ctx);
-    const env = ctx.createGain();
-    env.gain.setValueAtTime(0.0001, now);
-    env.gain.exponentialRampToValueAtTime(peak, now + Math.max(0.002, a));
-    env.gain.exponentialRampToValueAtTime(Math.max(0.0002, peak * Math.max(0.02, s)), now + a + d);
+    const out = makeOutput(ctx, frequency);
+    const env = sustainEnvelope(ctx, stages, peak);
     env.connect(out);
     const osc = ctx.createOscillator();
     osc.type = TONE_TYPES[state.sound] ?? "sine";
     osc.frequency.value = frequency;
     osc.connect(env);
-    osc.start(now);
-    voices.set(code, {
-      release: (time) => {
-        const at = Math.max(time, ctx.currentTime);
-        env.gain.setTargetAtTime(0.0001, at, Math.max(0.02, r / 3));
-        osc.stop(at + r + 0.3);
-      },
-    });
+    osc.start(ctx.currentTime);
+    voices.set(code, { release: releaseVoice(ctx, env, [osc], stages.r) });
   };
 
   const startBell = (ctx, frequency, code) => {
     const now = ctx.currentTime;
     const { a, d, r, s } = envStages();
     const floor = oneShotFloor(s, 1);
-    const length = a + d + r;
-    const out = makeOutput(ctx);
-    const env = ctx.createGain();
-    env.gain.setValueAtTime(0.0001, now);
-    env.gain.exponentialRampToValueAtTime(1, now + a);
-    env.gain.exponentialRampToValueAtTime(floor, now + a + d);
-    env.gain.exponentialRampToValueAtTime(0.0001, now + length);
-    env.connect(out);
+    const out = makeOutput(ctx, frequency);
+    const bus = ctx.createGain();
+    bus.connect(out);
+    // each partial rings with its own decay: high partials die fast, low ones carry
     const partials = [
-      { ratio: 1, gain: 0.5 },
-      { ratio: 2.41, gain: 0.3 },
-      { ratio: 3.9, gain: 0.18 },
+      { ratio: 1, gain: 0.5, decay: 1 },
+      { ratio: 2.41, gain: 0.3, decay: 0.55 },
+      { ratio: 3.9, gain: 0.18, decay: 0.32 },
+      { ratio: 6.3, gain: 0.08, decay: 0.18 },
     ];
     const sources = [];
-    partials.forEach(({ ratio, gain }) => {
-      const partialGain = ctx.createGain();
-      partialGain.gain.value = gain;
-      partialGain.connect(env);
+    partials.forEach(({ ratio, gain, decay }) => {
+      const penv = ctx.createGain();
+      penv.gain.setValueAtTime(0.0001, now);
+      penv.gain.exponentialRampToValueAtTime(gain, now + Math.max(0.002, a));
+      penv.gain.exponentialRampToValueAtTime(Math.max(0.0002, gain * floor), now + a + d);
+      penv.gain.exponentialRampToValueAtTime(0.0001, now + Math.max(a + d + 0.05, a + d + r * decay));
+      penv.connect(bus);
       const osc = ctx.createOscillator();
       osc.type = "sine";
       osc.frequency.value = frequency * ratio;
-      osc.connect(partialGain);
+      osc.connect(penv);
       osc.start(now);
-      osc.stop(now + length + 0.05);
+      osc.stop(now + a + d + r + 0.05);
       sources.push(osc);
     });
-    voices.set(code, { cancel: cancelVoice(ctx, env, sources) });
+    voices.set(code, { cancel: cancelVoice(ctx, bus, sources) });
   };
 
   const startOrgan = (ctx, frequency, code) => {
-    const now = ctx.currentTime;
-    const { a, d, r, s } = envStages();
-    const peak = 0.4;
-    const out = makeOutput(ctx);
-    const env = ctx.createGain();
-    env.gain.setValueAtTime(0.0001, now);
-    env.gain.exponentialRampToValueAtTime(peak, now + Math.max(0.002, a));
-    env.gain.exponentialRampToValueAtTime(Math.max(0.0002, peak * Math.max(0.02, s)), now + a + d);
+    const stages = envStages();
+    const out = makeOutput(ctx, frequency);
+    const env = sustainEnvelope(ctx, stages, 0.4);
     env.connect(out);
     const drawbars = [[1, 0.5], [2, 0.35], [3, 0.22], [4, 0.12]];
     const sources = drawbars.map(([ratio, gain]) => {
@@ -219,16 +231,65 @@
       osc.type = "sine";
       osc.frequency.value = frequency * ratio;
       osc.connect(partialGain).connect(env);
+      osc.start(ctx.currentTime);
+      return osc;
+    });
+    voices.set(code, { release: releaseVoice(ctx, env, sources, stages.r) });
+  };
+
+  // electric piano: FM body (decaying bark) plus a fast tine sparkle on top
+  const startEp = (ctx, frequency, code) => {
+    const stages = envStages();
+    const { a, d, r } = stages;
+    const out = makeOutput(ctx, frequency);
+    const env = sustainEnvelope(ctx, stages, 0.5);
+    env.connect(out);
+    const carrier = ctx.createOscillator();
+    carrier.type = "sine";
+    carrier.frequency.value = frequency;
+    const mod = ctx.createOscillator();
+    mod.type = "sine";
+    mod.frequency.value = frequency * 2;
+    const modIndex = ctx.createGain();
+    modIndex.gain.setValueAtTime(frequency * 3, ctx.currentTime);
+    modIndex.gain.exponentialRampToValueAtTime(Math.max(frequency * 0.4, 20), ctx.currentTime + a + d);
+    mod.connect(modIndex).connect(carrier.frequency);
+    const tine = ctx.createOscillator();
+    tine.type = "sine";
+    tine.frequency.value = frequency * 14.01;
+    const tineEnv = ctx.createGain();
+    tineEnv.gain.setValueAtTime(0.12, ctx.currentTime);
+    tineEnv.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + Math.max(0.08, a + d * 0.5));
+    tine.connect(tineEnv).connect(env);
+    carrier.connect(env);
+    const sources = [carrier, mod, tine];
+    sources.forEach((osc) => osc.start(ctx.currentTime));
+    voices.set(code, { release: releaseVoice(ctx, env, sources, r) });
+  };
+
+  // warm pad: three detuned saws through a filter that opens with the attack
+  const startPad = (ctx, frequency, code) => {
+    const stages = envStages();
+    const { a, d, r } = stages;
+    const now = ctx.currentTime;
+    const out = makeOutput(ctx, frequency);
+    const env = sustainEnvelope(ctx, stages, 0.28);
+    env.connect(out);
+    const filter = ctx.createBiquadFilter();
+    filter.type = "lowpass";
+    filter.frequency.setValueAtTime(Math.max(frequency, 200), now);
+    filter.frequency.linearRampToValueAtTime(Math.min(frequency * 6, 6000), now + a + d);
+    filter.Q.value = 0.8;
+    filter.connect(env);
+    const sources = [-8, 0, 8].map((cents) => {
+      const osc = ctx.createOscillator();
+      osc.type = "sawtooth";
+      osc.frequency.value = frequency * 2 ** (cents / 1200);
+      osc.connect(filter);
       osc.start(now);
       return osc;
     });
-    voices.set(code, {
-      release: (time) => {
-        const at = Math.max(time, ctx.currentTime);
-        env.gain.setTargetAtTime(0.0001, at, Math.max(0.02, r / 3));
-        sources.forEach((osc) => osc.stop(at + r + 0.3));
-      },
-    });
+    voices.set(code, { release: releaseVoice(ctx, env, sources, r) });
   };
 
   // sampled meow: sample's voiced body sits near 620 Hz, keyboard pitch maps to playback rate
@@ -248,7 +309,7 @@
     const { a, d, r, s } = envStages();
     const floor = oneShotFloor(s, 0.9);
     const length = Math.max(0.25, a + d + r);
-    const out = makeOutput(ctx);
+    const out = makeOutput(ctx, frequency);
     const env = ctx.createGain();
     env.gain.setValueAtTime(0.0001, now);
     env.gain.exponentialRampToValueAtTime(0.9, now + Math.max(0.01, a));
@@ -300,6 +361,8 @@
     if (state.sound === "pluck") startPluck(ctx, frequency, code);
     else if (state.sound === "bell") startBell(ctx, frequency, code);
     else if (state.sound === "organ") startOrgan(ctx, frequency, code);
+    else if (state.sound === "ep") startEp(ctx, frequency, code);
+    else if (state.sound === "pad") startPad(ctx, frequency, code);
     else if (state.sound === "meow") startMeow(ctx, frequency, code);
     else startTone(ctx, frequency, code);
     publishLiveNote(midi);
