@@ -5,6 +5,34 @@
   gap: 1ch;
 }
 
+.key-guitar-env {
+  white-space: pre;
+  line-height: 1.1;
+  cursor: crosshair;
+  touch-action: none;
+  user-select: none;
+}
+
+.key-guitar-env-curve {
+  display: block;
+  color: #FEFFE5;
+}
+
+.key-guitar-env-labels {
+  display: block;
+  color: #AC9D7C;
+}
+
+.key-guitar-env-readout {
+  display: block;
+  color: #AC9D7C;
+  font-weight: 160;
+}
+
+.key-guitar-env-readout:first-letter {
+  color: #FEFFE5;
+}
+
 .key-guitar-open,
 .key-guitar-key {
   border: 0;

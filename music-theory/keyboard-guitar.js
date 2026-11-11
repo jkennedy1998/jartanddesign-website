@@ -5,8 +5,8 @@
   const MAX_FRETS = 12;
   const TUNING_LIMIT = 24;
   const SOUND_OPTIONS = ["pluck", "sine", "saw", "square", "bell", "meow"];
-  const ATTACK_STEPS = [1, 2, 5, 10, 20, 50, 100];
-  const DECAY_STEPS = [0.2, 0.5, 1, 1.5, 2, 3, 4];
+  const ENV_COLS = 32;
+  const ENV_ROWS = 9;
   const OCTAVE_BASE_LIMIT = 3;
   const STRINGS = [
     { open: "G", octave: 3, chars: "1234567890-=", codes: ["Digit1", "Digit2", "Digit3", "Digit4", "Digit5", "Digit6", "Digit7", "Digit8", "Digit9", "Digit0", "Minus", "Equal"] },
@@ -19,10 +19,9 @@
   const octaveMount = document.querySelector("[data-key-guitar-octave]");
   const controlsMount = document.querySelector("[data-key-guitar-controls]");
   const soundMount = document.querySelector("[data-key-guitar-sound]");
-  const attackMount = document.querySelector("[data-key-guitar-attack]");
-  const decayMount = document.querySelector("[data-key-guitar-decay]");
+  const envMount = document.querySelector("[data-key-guitar-env]");
   const latchMount = document.querySelector("[data-key-guitar-latch]");
-  if (!boardMount || !octaveMount || !controlsMount || !soundMount || !attackMount || !decayMount || !latchMount) return;
+  if (!boardMount || !octaveMount || !controlsMount || !soundMount || !envMount || !latchMount) return;
 
   const noteIndex = (note) => NOTES.indexOf(note);
   const noteAt = (note, offset) => NOTES[(noteIndex(note) + offset + NOTES.length) % NOTES.length];
@@ -33,13 +32,22 @@
     tuningOffsets: STRINGS.map(() => 0),
     pressed: new Set(),
     sound: "pluck",
-    attackIndex: 2,
-    decayIndex: 3,
+    env: { pa: 0.005, pd: 0.25, pr: 0.745, s: 0.3, total: 0.8 },
+    pedal: false,
     latch: false,
     latched: new Set(),
   };
-  const attackSeconds = () => ATTACK_STEPS[state.attackIndex] / 1000;
-  const decaySeconds = () => DECAY_STEPS[state.decayIndex];
+  const pedalVoices = new Map();
+  const envStages = () => {
+    const { pa, pd, pr, s, total } = state.env;
+    return {
+      a: Math.max(0.001, pa * total),
+      d: Math.max(0.01, pd * total),
+      r: Math.max(0.01, pr * total),
+      s,
+    };
+  };
+  const envFormat = (seconds) => (seconds >= 1 ? `${seconds.toFixed(2)}s` : `${Math.round(seconds * 1000)}ms`);
   const isSustained = () => state.sound === "sine" || state.sound === "saw" || state.sound === "square";
   let root = document.documentElement.dataset.musicRoot || "C";
   let scaleNotes = new Set((document.documentElement.dataset.musicScaleNotes || "").split(",").filter(Boolean));
@@ -69,6 +77,10 @@
 
   const voices = new Map();
 
+  // one-shot voice shape: a→peak, d→sustain floor, hold, then fade over the release tail
+  const oneShotFloor = (s, peak) => Math.max(0.0002, peak * Math.max(0.02, s));
+  const oneShotTail = (r) => r * 0.6;
+
   const makeOutput = (ctx) => {
     const out = ctx.createGain();
     out.gain.value = 0.2;
@@ -78,17 +90,21 @@
 
   const startPluck = (ctx, frequency, code) => {
     const now = ctx.currentTime;
-    const attack = attackSeconds();
-    const length = attack + decaySeconds();
+    const { a, d, r, s } = envStages();
+    const floor = oneShotFloor(s, 1);
+    const tail = oneShotTail(r);
+    const length = a + d + r;
     const out = makeOutput(ctx);
     const filter = ctx.createBiquadFilter();
     filter.type = "lowpass";
     filter.frequency.setValueAtTime(Math.min(frequency * 7, 7000), now);
-    filter.frequency.exponentialRampToValueAtTime(Math.max(frequency * 1.5, 250), now + length);
+    filter.frequency.exponentialRampToValueAtTime(Math.max(frequency * 1.5, 250), now + a + d);
     filter.connect(out);
     const env = ctx.createGain();
     env.gain.setValueAtTime(0.0001, now);
-    env.gain.exponentialRampToValueAtTime(1, now + attack);
+    env.gain.exponentialRampToValueAtTime(1, now + a);
+    env.gain.exponentialRampToValueAtTime(floor, now + a + d);
+    env.gain.setValueAtTime(floor, now + a + d + tail);
     env.gain.exponentialRampToValueAtTime(0.0001, now + length);
     env.connect(filter);
     const osc = ctx.createOscillator();
@@ -96,7 +112,7 @@
     osc.frequency.value = frequency;
     osc.connect(env);
     osc.start(now);
-    osc.stop(now + length + 0.1);
+    osc.stop(now + length + 0.05);
     const sub = ctx.createOscillator();
     sub.type = "triangle";
     sub.frequency.value = frequency / 2;
@@ -104,7 +120,7 @@
     subGain.gain.value = 0.5;
     sub.connect(subGain).connect(filter);
     sub.start(now);
-    sub.stop(now + length + 0.1);
+    sub.stop(now + length + 0.05);
     voices.set(code, {});
   };
 
@@ -113,10 +129,13 @@
 
   const startTone = (ctx, frequency, code) => {
     const now = ctx.currentTime;
+    const { a, d, r, s } = envStages();
+    const peak = TONE_PEAK[state.sound] ?? 0.8;
     const out = makeOutput(ctx);
     const env = ctx.createGain();
     env.gain.setValueAtTime(0.0001, now);
-    env.gain.exponentialRampToValueAtTime(TONE_PEAK[state.sound] ?? 0.8, now + Math.max(0.002, attackSeconds()));
+    env.gain.exponentialRampToValueAtTime(peak, now + Math.max(0.002, a));
+    env.gain.exponentialRampToValueAtTime(Math.max(0.0002, peak * Math.max(0.02, s)), now + a + d);
     env.connect(out);
     const osc = ctx.createOscillator();
     osc.type = TONE_TYPES[state.sound] ?? "sine";
@@ -126,20 +145,24 @@
     voices.set(code, {
       release: (time) => {
         const at = Math.max(time, ctx.currentTime);
-        env.gain.setTargetAtTime(0.0001, at, Math.max(0.02, decaySeconds() / 3));
-        osc.stop(at + decaySeconds() + 0.3);
+        env.gain.setTargetAtTime(0.0001, at, Math.max(0.02, r / 3));
+        osc.stop(at + r + 0.3);
       },
     });
   };
 
   const startBell = (ctx, frequency, code) => {
     const now = ctx.currentTime;
-    const attack = Math.max(0.002, attackSeconds());
-    const length = attack + decaySeconds();
+    const { a, d, r, s } = envStages();
+    const floor = oneShotFloor(s, 1);
+    const tail = oneShotTail(r);
+    const length = a + d + r;
     const out = makeOutput(ctx);
     const env = ctx.createGain();
     env.gain.setValueAtTime(0.0001, now);
-    env.gain.exponentialRampToValueAtTime(1, now + attack);
+    env.gain.exponentialRampToValueAtTime(1, now + a);
+    env.gain.exponentialRampToValueAtTime(floor, now + a + d);
+    env.gain.setValueAtTime(floor, now + a + d + tail);
     env.gain.exponentialRampToValueAtTime(0.0001, now + length);
     env.connect(out);
     const partials = [
@@ -156,15 +179,17 @@
       osc.frequency.value = frequency * ratio;
       osc.connect(partialGain);
       osc.start(now);
-      osc.stop(now + length + 0.1);
+      osc.stop(now + length + 0.05);
     });
     voices.set(code, {});
   };
 
   const startMeow = (ctx, frequency, code) => {
     const now = ctx.currentTime;
-    const attack = Math.max(0.01, attackSeconds());
-    const length = Math.max(0.25, attack + decaySeconds() * 0.6);
+    const { a, d, r, s } = envStages();
+    const floor = oneShotFloor(s, 0.9);
+    const tail = oneShotTail(r);
+    const length = Math.max(0.25, a + d + r);
     const out = makeOutput(ctx);
     const formant = ctx.createBiquadFilter();
     formant.type = "bandpass";
@@ -172,7 +197,9 @@
     formant.Q.value = 6;
     const env = ctx.createGain();
     env.gain.setValueAtTime(0.0001, now);
-    env.gain.exponentialRampToValueAtTime(0.9, now + attack);
+    env.gain.exponentialRampToValueAtTime(0.9, now + Math.max(0.01, a));
+    env.gain.exponentialRampToValueAtTime(floor, now + Math.max(0.01, a) + d);
+    env.gain.setValueAtTime(floor, now + Math.max(0.01, a) + d + tail);
     env.gain.exponentialRampToValueAtTime(0.0001, now + length);
     const osc = ctx.createOscillator();
     osc.type = "sawtooth";
@@ -181,7 +208,7 @@
     osc.frequency.linearRampToValueAtTime(frequency * 0.9, now + length);
     osc.connect(formant).connect(env).connect(out);
     osc.start(now);
-    osc.stop(now + length + 0.1);
+    osc.stop(now + length + 0.05);
     voices.set(code, {});
   };
 
@@ -195,6 +222,7 @@
     const existing = voices.get(code);
     if (existing?.release) existing.release(ctx.currentTime);
     voices.delete(code);
+    pedalVoices.delete(code);
     const frequency = frequencyFor(midi);
     if (state.sound === "pluck") startPluck(ctx, frequency, code);
     else if (state.sound === "bell") startBell(ctx, frequency, code);
@@ -207,7 +235,23 @@
     const voice = voices.get(code);
     if (!voice) return;
     voices.delete(code);
-    if (voice.release && audioContext) voice.release(audioContext.currentTime);
+    if (!voice.release) return;
+    if (state.pedal) {
+      pedalVoices.set(code, voice);
+      return;
+    }
+    voice.release(audioContext.currentTime);
+  };
+
+  const setPedal = (down) => {
+    if (state.pedal === down) return;
+    state.pedal = down;
+    if (!down) {
+      pedalVoices.forEach((voice, code) => {
+        pedalVoices.delete(code);
+        if (audioContext) voice.release(audioContext.currentTime);
+      });
+    }
   };
 
   const midiFor = (stringIndex, fret) => {
@@ -255,10 +299,96 @@
       );
     };
     renderSelector(soundMount, "sound", state.sound, "sound");
-    renderSelector(attackMount, "attack", `${ATTACK_STEPS[state.attackIndex]}ms`, "attack");
-    renderSelector(decayMount, "decay", `${DECAY_STEPS[state.decayIndex]}s`, "decay");
     renderSelector(latchMount, "latch", state.latch ? "on" : "off", "latch");
   };
+
+  const envHandles = () => {
+    const span = ENV_COLS - 1;
+    const xa = Math.round(state.env.pa * span);
+    const xd = Math.round((state.env.pa + state.env.pd) * span);
+    const xr = span;
+    return { xa, xd, xs: Math.round((xd + xr) / 2), xr };
+  };
+
+  const envLevelRow = (x) => {
+    const span = ENV_COLS - 1;
+    const { pa, pd, pr, s } = state.env;
+    const top = ENV_ROWS - 1;
+    const fa = pa * span;
+    const fd = (pa + pd) * span;
+    const fr = pr * span;
+    if (x <= fa && fa > 0) return Math.round(top - (x / fa) * top);
+    if (x <= fd && fd > fa) return Math.round(top - (1 + (s - 1) * ((x - fa) / (fd - fa))) * top);
+    if (x < span && fr > 0) return Math.round(top - Math.max(0, s * (1 - (x - fd) / fr)) * top);
+    return top;
+  };
+
+  const renderEnv = () => {
+    const h = envHandles();
+    const grid = Array.from({ length: ENV_ROWS }, () => Array(ENV_COLS).fill(" "));
+    for (let x = 0; x < ENV_COLS; x += 1) {
+      const row = envLevelRow(x);
+      const rowNext = x + 1 < ENV_COLS ? envLevelRow(x + 1) : row;
+      grid[row][x] = rowNext < row ? "/" : rowNext > row ? "\\" : row === 0 ? "‾" : row === ENV_ROWS - 1 ? "_" : "─";
+    }
+    [[h.xa, "A"], [h.xd, "D"], [h.xs, "S"], [h.xr, "R"]].forEach(([col, letter]) => {
+      grid[envLevelRow(col)][col] = "o";
+    });
+    const labels = Array(ENV_COLS).fill(" ");
+    labels[h.xr] = "R";
+    labels[h.xs] = "S";
+    labels[h.xd] = "D";
+    labels[h.xa] = "A";
+    const { a, d, r, s } = envStages();
+    const readout = `a ${envFormat(a)}  d ${envFormat(d)}  s ${Math.round(s * 100)}%  r ${envFormat(r)}`;
+    const line = (text, className) => Object.assign(document.createElement("span"), { className, textContent: text });
+    envMount.replaceChildren(
+      line(grid.map((cells) => cells.join("")).join("\n"), "key-guitar-env-curve"),
+      line(labels.join(""), "key-guitar-env-labels"),
+      line(readout, "key-guitar-env-readout"),
+    );
+  };
+
+  let envDragging = false;
+  let envStage = null;
+  const editEnv = (event) => {
+    const rect = envMount.firstElementChild.getBoundingClientRect();
+    const col = Math.min(ENV_COLS - 1, Math.max(0, Math.floor(((event.clientX - rect.left) / rect.width) * ENV_COLS)));
+    const row = Math.min(ENV_ROWS - 1, Math.max(0, Math.floor(((event.clientY - rect.top) / rect.height) * ENV_ROWS)));
+    if (!envStage) {
+      const h = envHandles();
+      envStage = [[h.xa, "a"], [h.xd, "d"], [h.xs, "s"], [h.xr, "r"]]
+        .sort((p, q) => Math.abs(p[0] - col) - Math.abs(q[0] - col))[0][1];
+    }
+    const env = state.env;
+    const frac = col / (ENV_COLS - 1);
+    if (envStage === "a") {
+      env.pa = Math.min(Math.max(frac, 0.004), 0.98 - env.pd);
+    } else if (envStage === "d") {
+      env.pd = Math.min(Math.max(frac - env.pa, 0.01), 0.98 - env.pa);
+    } else if (envStage === "r") {
+      const { a, d } = envStages();
+      env.pr = Math.min(Math.max(1 - frac, 0.02), 0.98);
+      env.total = (a + d) / Math.max(0.02, 1 - env.pr);
+    } else {
+      env.s = Math.min(Math.max(1 - row / (ENV_ROWS - 1), 0), 1);
+    }
+    renderEnv();
+  };
+
+  envMount.addEventListener("pointerdown", (event) => {
+    envDragging = true;
+    envStage = null;
+    envMount.setPointerCapture(event.pointerId);
+    editEnv(event);
+  });
+  envMount.addEventListener("pointermove", (event) => {
+    if (envDragging) editEnv(event);
+  });
+  ["pointerup", "pointercancel"].forEach((type) => envMount.addEventListener(type, () => {
+    envDragging = false;
+    envStage = null;
+  }));
 
   const setLatch = (value) => {
     state.latch = value;
@@ -346,10 +476,6 @@
     const stepDirection = Number(step.dataset.kgStep);
     if (step.dataset.kgDirection === "sound") {
       state.sound = SOUND_OPTIONS[(SOUND_OPTIONS.indexOf(state.sound) + stepDirection + SOUND_OPTIONS.length) % SOUND_OPTIONS.length];
-    } else if (step.dataset.kgDirection === "attack") {
-      state.attackIndex = Math.max(0, Math.min(ATTACK_STEPS.length - 1, state.attackIndex + stepDirection));
-    } else if (step.dataset.kgDirection === "decay") {
-      state.decayIndex = Math.max(0, Math.min(DECAY_STEPS.length - 1, state.decayIndex + stepDirection));
     } else if (step.dataset.kgDirection === "octave") {
       state.octaveBase = Math.max(-OCTAVE_BASE_LIMIT, Math.min(OCTAVE_BASE_LIMIT, state.octaveBase + stepDirection));
       renderOctave();
@@ -421,6 +547,11 @@
       return;
     }
     if (event.repeat || isTypingTarget(event.target)) return;
+    if (event.code === "Space") {
+      event.preventDefault();
+      setPedal(true);
+      return;
+    }
     const hit = hits.get(event.code);
     if (!hit) return;
     event.preventDefault();
@@ -436,6 +567,10 @@
   });
 
   window.addEventListener("keyup", (event) => {
+    if (event.code === "Space") {
+      setPedal(false);
+      return;
+    }
     if (event.key === "Shift" || event.key === "Control") {
       state.octaveHold = 0;
       renderOctave();
@@ -453,10 +588,12 @@
     });
     state.pressed.clear();
     state.octaveHold = 0;
+    setPedal(false);
     renderOctave();
   });
 
   render();
   renderOctave();
   renderControls();
+  renderEnv();
 })();
