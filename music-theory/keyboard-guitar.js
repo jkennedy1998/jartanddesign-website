@@ -24,6 +24,7 @@
   const envStepsMount = document.querySelector("[data-key-guitar-env-steps]");
   const latchMount = document.querySelector("[data-key-guitar-latch]");
   if (!boardMount || !octaveMount || !controlsMount || !soundMount || !envMount || !latchMount) return;
+  // meow sample: "Meow.ogg" by Dcrosby, Wikimedia Commons, CC BY-SA 3.0
   const sampleUrl = new URL("samples/meow.ogg", document.currentScript?.src ?? new URL("music-theory/", location.href));
 
   const noteIndex = (note) => NOTES.indexOf(note);
