@@ -4,8 +4,8 @@
   const FRET_MARKERS = new Set([3, 5, 7, 9, 12]);
   const MAX_FRETS = 12;
   const TUNING_LIMIT = 24;
-  const SOUND_OPTIONS = ["pluck", "sine", "saw", "square", "bell", "organ", "ep", "pad", "meow"];
-  const ONE_SHOT_SOUNDS = new Set(["pluck", "bell", "meow"]);
+  const SOUND_OPTIONS = ["pluck", "sine", "saw", "square", "bell", "organ", "ep", "pad", "waterpan", "marimba", "choir", "bass", "meow"];
+  const ONE_SHOT_SOUNDS = new Set(["pluck", "bell", "meow", "waterpan", "marimba"]);
   const ENV_COLS = 32;
   const ENV_ROWS = 9;
   const OCTAVE_BASE_LIMIT = 3;
@@ -405,6 +405,154 @@
     voices.set(code, { release: releaseVoice(ctx, env, sources, r) });
   };
 
+  // waterpan: steel drum — inharmonic partials that bloom up into pitch and ring warm
+  const startWaterpan = (ctx, frequency, code) => {
+    const now = ctx.currentTime;
+    const { a, d, r, s } = envStages();
+    const floor = oneShotFloor(s, 0.8);
+    const out = makeOutput(ctx, frequency);
+    const bus = ctx.createGain();
+    bus.connect(out);
+    const partials = [
+      { ratio: 1, gain: 0.55, decay: 1 },
+      { ratio: 2, gain: 0.3, decay: 0.72 },
+      { ratio: 3.07, gain: 0.18, decay: 0.45 },
+      { ratio: 4.51, gain: 0.1, decay: 0.28 },
+    ];
+    const sources = [];
+    partials.forEach(({ ratio, gain, decay }) => {
+      const penv = ctx.createGain();
+      penv.gain.setValueAtTime(0.0001, now);
+      penv.gain.exponentialRampToValueAtTime(gain, now + Math.max(0.002, a));
+      penv.gain.exponentialRampToValueAtTime(Math.max(0.0002, gain * floor), now + a + d);
+      penv.gain.exponentialRampToValueAtTime(0.0001, now + Math.max(a + d + 0.05, a + d + r * decay));
+      penv.connect(bus);
+      const osc = ctx.createOscillator();
+      osc.type = "sine";
+      // the pan strike blooms: pitch rises into tune like a mallet sinking in
+      osc.frequency.setValueAtTime(frequency * ratio * 0.93, now);
+      osc.frequency.exponentialRampToValueAtTime(frequency * ratio, now + 0.07);
+      osc.connect(penv);
+      osc.start(now);
+      osc.stop(now + a + d + r + 0.05);
+      sources.push(osc);
+    });
+    voices.set(code, { cancel: cancelVoice(ctx, bus, sources) });
+  };
+
+  // marimba: wooden bar — strong fundamental with its tuned 4th partial and a soft mallet thump
+  const startMarimba = (ctx, frequency, code) => {
+    const now = ctx.currentTime;
+    const { a, d, r, s } = envStages();
+    const floor = oneShotFloor(s, 0.9);
+    const out = makeOutput(ctx, frequency);
+    const bus = ctx.createGain();
+    bus.connect(out);
+    const partials = [
+      { ratio: 1, gain: 0.6, decay: 0.9 },
+      { ratio: 4, gain: 0.22, decay: 0.3 },
+      { ratio: 9.2, gain: 0.07, decay: 0.14 },
+    ];
+    const sources = [];
+    partials.forEach(({ ratio, gain, decay }) => {
+      const penv = ctx.createGain();
+      penv.gain.setValueAtTime(0.0001, now);
+      penv.gain.exponentialRampToValueAtTime(gain, now + Math.max(0.002, a));
+      penv.gain.exponentialRampToValueAtTime(Math.max(0.0002, gain * floor), now + a + d);
+      penv.gain.exponentialRampToValueAtTime(0.0001, now + Math.max(a + d + 0.05, a + d + r * decay));
+      penv.connect(bus);
+      const osc = ctx.createOscillator();
+      osc.type = "sine";
+      osc.frequency.value = frequency * ratio;
+      osc.connect(penv);
+      osc.start(now);
+      osc.stop(now + a + d + r + 0.05);
+      sources.push(osc);
+    });
+    const mallet = ctx.createBufferSource();
+    mallet.buffer = noiseFor(ctx);
+    const malletFilter = ctx.createBiquadFilter();
+    malletFilter.type = "lowpass";
+    malletFilter.frequency.value = 1400;
+    const malletEnv = ctx.createGain();
+    malletEnv.gain.setValueAtTime(0.4, now);
+    malletEnv.gain.exponentialRampToValueAtTime(0.0001, now + 0.02);
+    mallet.connect(malletFilter).connect(malletEnv).connect(out);
+    mallet.start(now);
+    mallet.stop(now + 0.05);
+    sources.push(mallet);
+    voices.set(code, { cancel: cancelVoice(ctx, bus, sources) });
+  };
+
+  // choir: detuned saws through "ah" formants with slow settling vibrato — a human pad
+  const startChoir = (ctx, frequency, code) => {
+    const stages = envStages();
+    const { a, d, r } = stages;
+    const now = ctx.currentTime;
+    const out = makeOutput(ctx, frequency);
+    const env = sustainEnvelope(ctx, stages, 0.3);
+    env.connect(out);
+    const vowel = [{ frequency: 700, Q: 6, gain: 1 }, { frequency: 1100, Q: 8, gain: 0.6 }]
+      .map(({ frequency: f, Q, gain }) => {
+        const band = ctx.createBiquadFilter();
+        band.type = "bandpass";
+        band.frequency.value = f;
+        band.Q.value = Q;
+        const level = ctx.createGain();
+        level.gain.value = gain;
+        band.connect(level).connect(env);
+        return band;
+      });
+    const vibrato = ctx.createOscillator();
+    vibrato.type = "sine";
+    vibrato.frequency.value = 4.8;
+    const vibratoDepth = ctx.createGain();
+    vibratoDepth.gain.setValueAtTime(0, now);
+    vibratoDepth.gain.linearRampToValueAtTime(frequency * 0.004, now + a + d * 0.6 + 0.2);
+    vibrato.connect(vibratoDepth);
+    const sources = [-6, 6].map((cents) => {
+      const osc = ctx.createOscillator();
+      osc.type = "sawtooth";
+      osc.frequency.value = frequency * 2 ** (cents / 1200);
+      vibratoDepth.connect(osc.frequency);
+      osc.connect(vowel[0]);
+      osc.connect(vowel[1]);
+      osc.start(now);
+      return osc;
+    });
+    vibrato.start(now);
+    sources.push(vibrato);
+    voices.set(code, { release: releaseVoice(ctx, env, sources, r) });
+  };
+
+  // bass: weighty triangle with a pure sub underneath, lowpass kept musical
+  const startBass = (ctx, frequency, code) => {
+    const stages = envStages();
+    const { a, d, r } = stages;
+    const now = ctx.currentTime;
+    const out = makeOutput(ctx, frequency);
+    const env = sustainEnvelope(ctx, stages, 0.6);
+    const filter = ctx.createBiquadFilter();
+    filter.type = "lowpass";
+    filter.frequency.setValueAtTime(Math.max(frequency * 2, 120), now);
+    filter.frequency.linearRampToValueAtTime(Math.min(frequency * 7, 1400), now + a + d);
+    filter.Q.value = 0.7;
+    env.connect(filter).connect(out);
+    const main = ctx.createOscillator();
+    main.type = "triangle";
+    main.frequency.value = frequency;
+    main.connect(env);
+    main.start(now);
+    const sub = ctx.createOscillator();
+    sub.type = "sine";
+    sub.frequency.value = frequency / 2;
+    const subGain = ctx.createGain();
+    subGain.gain.value = 0.7;
+    sub.connect(subGain).connect(env);
+    sub.start(now);
+    voices.set(code, { release: releaseVoice(ctx, env, [main, sub], r) });
+  };
+
   // sampled meow: sample's voiced body sits near 620 Hz, keyboard pitch maps to playback rate
   const MEOW_BASE_HZ = 620;
   let meowAudio = null;
@@ -477,6 +625,10 @@
     else if (state.sound === "organ") startOrgan(ctx, frequency, code);
     else if (state.sound === "ep") startEp(ctx, frequency, code);
     else if (state.sound === "pad") startPad(ctx, frequency, code);
+    else if (state.sound === "waterpan") startWaterpan(ctx, frequency, code);
+    else if (state.sound === "marimba") startMarimba(ctx, frequency, code);
+    else if (state.sound === "choir") startChoir(ctx, frequency, code);
+    else if (state.sound === "bass") startBass(ctx, frequency, code);
     else if (state.sound === "meow") startMeow(ctx, frequency, code);
     else if (state.sound === "sine") startSine(ctx, frequency, code);
     else if (state.sound === "saw") startSaw(ctx, frequency, code);
