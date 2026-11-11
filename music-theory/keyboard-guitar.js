@@ -22,8 +22,7 @@
   const soundMount = document.querySelector("[data-key-guitar-sound]");
   const envMount = document.querySelector("[data-key-guitar-env]");
   const envStepsMount = document.querySelector("[data-key-guitar-env-steps]");
-  const latchMount = document.querySelector("[data-key-guitar-latch]");
-  if (!boardMount || !octaveMount || !controlsMount || !soundMount || !envMount || !latchMount) return;
+  if (!boardMount || !octaveMount || !controlsMount || !soundMount || !envMount) return;
   // meow sample: "Meow.ogg" by Dcrosby, Wikimedia Commons, CC BY-SA 3.0
   const sampleUrl = new URL("samples/meow.ogg", document.currentScript?.src ?? new URL("music-theory/", location.href));
 
@@ -38,8 +37,6 @@
     sound: "pluck",
     env: { pa: 0.005, pd: 0.25, pr: 0.745, s: 0.3, total: 0.8 },
     pedal: false,
-    latch: false,
-    latched: new Set(),
   };
   const pedalVoices = new Map();
   const envStages = () => {
@@ -90,7 +87,7 @@
   const voices = new Map();
 
   // voice cap: steal the oldest voice when polyphony gets out of hand so the
-  // audio callback never drowns during strums, latch, and pedal at once
+  // audio callback never drowns during strums and pedal at once
   const MAX_VOICES = 16;
   const retireOldestVoice = () => {
     while (voices.size >= MAX_VOICES) {
@@ -555,7 +552,26 @@
       );
     };
     renderSelector(soundMount, "sound", state.sound, "sound");
-    renderSelector(latchMount, "latch", state.latch ? "on" : "off", "latch");
+    const randomButton = document.createElement("button");
+    randomButton.type = "button";
+    randomButton.className = "music-random-button";
+    randomButton.dataset.kgDirection = "random";
+    randomButton.textContent = "randomize";
+    randomButton.setAttribute("aria-label", "randomize sound, octave, and envelope");
+    controlsMount.append(randomButton);
+  };
+
+  // one roll of the dice: sound, octave, and a valid envelope shape
+  const randomizeGuitar = () => {
+    state.octaveBase = Math.floor(Math.random() * (OCTAVE_BASE_LIMIT * 2 + 1)) - OCTAVE_BASE_LIMIT;
+    state.sound = SOUND_OPTIONS[Math.floor(Math.random() * SOUND_OPTIONS.length)];
+    const env = state.env;
+    env.pa = 0.004 + Math.random() * 0.35;
+    env.pd = 0.01 + Math.random() * (0.9 - env.pa);
+    env.pr = 0.02 + Math.random() * 0.9;
+    env.s = Math.random();
+    renderOctave();
+    renderEnv();
   };
 
   const envHandles = () => {
@@ -658,17 +674,6 @@
     renderEnv();
   });
 
-  const setLatch = (value) => {
-    state.latch = value;
-    if (!value) {
-      state.latched.forEach((code) => {
-        const hit = hits.get(code);
-        if (hit) release(hit);
-      });
-      state.latched.clear();
-    }
-  };
-
   const makeStepButton = (stringIndex, direction) => {
     const button = document.createElement("button");
     button.type = "button";
@@ -747,8 +752,8 @@
     } else if (step.dataset.kgDirection === "octave") {
       state.octaveBase = Math.max(-OCTAVE_BASE_LIMIT, Math.min(OCTAVE_BASE_LIMIT, state.octaveBase + stepDirection));
       renderOctave();
-    } else if (step.dataset.kgDirection === "latch") {
-      setLatch(!state.latch);
+    } else if (step.dataset.kgDirection === "random") {
+      randomizeGuitar();
     }
     renderControls();
   });
@@ -825,13 +830,7 @@
     event.preventDefault();
     if (state.pressed.has(event.code)) return;
     state.pressed.add(event.code);
-    if (state.latch && state.latched.has(event.code)) {
-      state.latched.delete(event.code);
-      release(hit);
-    } else {
-      press(hit);
-      if (state.latch) state.latched.add(event.code);
-    }
+    press(hit);
   });
 
   window.addEventListener("keyup", (event) => {
@@ -847,13 +846,11 @@
     const hit = hits.get(event.code);
     if (!hit) return;
     state.pressed.delete(event.code);
-    if (!(state.latch && state.latched.has(event.code))) release(hit);
+    release(hit);
   });
 
   window.addEventListener("blur", () => {
-    state.pressed.forEach((code) => {
-      if (!(state.latch && state.latched.has(code))) release(hits.get(code));
-    });
+    state.pressed.forEach((code) => release(hits.get(code)));
     state.pressed.clear();
     state.octaveHold = 0;
     setPedal(false);
