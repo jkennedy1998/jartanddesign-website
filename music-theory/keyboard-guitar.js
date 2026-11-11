@@ -4,7 +4,7 @@
   const FRET_MARKERS = new Set([3, 5, 7, 9, 12]);
   const MAX_FRETS = 12;
   const TUNING_LIMIT = 24;
-  const SOUND_OPTIONS = ["pluck", "sine", "saw", "square", "bell", "organ", "ep", "pad", "waterpan", "marimba", "choir", "bass", "meow"];
+  const SOUND_OPTIONS = ["pluck", "sine", "saw", "square", "flute", "lead", "chip", "bell", "organ", "ep", "pad", "waterpan", "marimba", "choir", "bass", "meow"];
   const ONE_SHOT_SOUNDS = new Set(["pluck", "bell", "meow", "waterpan", "marimba"]);
   const ENV_COLS = 32;
   const ENV_ROWS = 9;
@@ -216,6 +216,21 @@
     sources.forEach((osc) => {
       try { osc.stop(at + r + 0.3); } catch { /* already stopped */ }
     });
+  };
+
+  // plain waves: the original one-oscillator voices, kept for their simple honest sound
+  const PLAIN_PEAKS = { sine: 0.8, saw: 0.5, square: 0.35 };
+  const startPlainWave = (ctx, frequency, code, type) => {
+    const stages = envStages();
+    const out = makeOutput(ctx, frequency);
+    const env = sustainEnvelope(ctx, stages, PLAIN_PEAKS[type]);
+    env.connect(out);
+    const osc = ctx.createOscillator();
+    osc.type = type;
+    osc.frequency.value = frequency;
+    osc.connect(env);
+    osc.start(ctx.currentTime);
+    voices.set(code, { release: releaseVoice(ctx, env, [osc], stages.r) });
   };
 
   // sine = flute: soft unison shimmer with vibrato that fades in like air settling
@@ -630,8 +645,11 @@
     else if (state.sound === "choir") startChoir(ctx, frequency, code);
     else if (state.sound === "bass") startBass(ctx, frequency, code);
     else if (state.sound === "meow") startMeow(ctx, frequency, code);
-    else if (state.sound === "sine") startSine(ctx, frequency, code);
-    else if (state.sound === "saw") startSaw(ctx, frequency, code);
+    else if (state.sound === "sine") startPlainWave(ctx, frequency, code, "sine");
+    else if (state.sound === "saw") startPlainWave(ctx, frequency, code, "sawtooth");
+    else if (state.sound === "square") startPlainWave(ctx, frequency, code, "square");
+    else if (state.sound === "flute") startSine(ctx, frequency, code);
+    else if (state.sound === "lead") startSaw(ctx, frequency, code);
     else startSquare(ctx, frequency, code);
     publishLiveNote(midi);
   };
@@ -665,7 +683,10 @@
       + state.tuningOffsets[stringIndex] + fret + (state.octaveBase + state.octaveHold) * 12;
   };
 
-  const keyFor = (code) => boardMount.querySelector(`[data-key-guitar-code="${code}"]`);
+  // cached key cells so press/release never touch the DOM on the hot path
+  const keyCells = new Map();
+  const openCells = new Map();
+  const keyFor = (code) => keyCells.get(code);
 
   const press = (hit) => {
     const cell = keyFor(hit.code);
@@ -684,6 +705,7 @@
     if (value) value.textContent = total > 0 ? `+${total}` : String(total);
   };
 
+  let randomButton = null;
   const renderControls = () => {
     const renderSelector = (mount, label, value, direction) => {
       const step = (text, stepDirection) => {
@@ -704,13 +726,15 @@
       );
     };
     renderSelector(soundMount, "sound", state.sound, "sound");
-    const randomButton = document.createElement("button");
-    randomButton.type = "button";
-    randomButton.className = "music-random-button";
-    randomButton.dataset.kgDirection = "random";
-    randomButton.textContent = "randomize";
-    randomButton.setAttribute("aria-label", "randomize sound, octave, and envelope");
-    controlsMount.append(randomButton);
+    if (!randomButton) {
+      randomButton = document.createElement("button");
+      randomButton.type = "button";
+      randomButton.className = "music-random-button";
+      randomButton.dataset.kgDirection = "random";
+      randomButton.textContent = "randomize";
+      randomButton.setAttribute("aria-label", "randomize sound, octave, and envelope");
+    }
+    if (!randomButton.isConnected) controlsMount.append(randomButton);
   };
 
   // one roll of the dice: sound, octave, and a valid envelope shape
@@ -838,6 +862,8 @@
   };
 
   const render = () => {
+    keyCells.clear();
+    openCells.clear();
     const fragment = document.createDocumentFragment();
     const header = document.createElement("div");
     header.className = "music-fret-row music-fret-labels";
@@ -860,6 +886,7 @@
       openLabel.textContent = openNote;
       openLabel.style.setProperty("--music-note-color", colorFor(openNote));
       openLabel.setAttribute("aria-label", `string ${stringIndex + 1} open ${openNote}`);
+      openCells.set(stringIndex, openLabel);
       stringTuning.append(makeStepButton(stringIndex, -1), openLabel, makeStepButton(stringIndex, 1));
       row.append(stringTuning);
       for (let fret = 0; fret < MAX_FRETS; fret += 1) {
@@ -876,6 +903,7 @@
         cell.textContent = string.chars[fret];
         cell.style.setProperty("--music-note-color", colorFor(note));
         cell.setAttribute("aria-label", `string ${stringIndex + 1} fret ${fret} ${note}`);
+        keyCells.set(string.codes[fret], cell);
         row.append(cell);
       }
       row.append(span("│", "music-fret-end"));
@@ -920,7 +948,7 @@
   });
 
   const triggerOpenString = (stringIndex) => {
-    const open = boardMount.querySelector(`[data-kg-open="${stringIndex}"]`);
+    const open = openCells.get(stringIndex);
     if (!open) return;
     const code = `open-${stringIndex}`;
     noteOn(midiFor(stringIndex, 0), code);
