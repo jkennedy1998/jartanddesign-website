@@ -201,21 +201,84 @@
     });
   };
 
-  const TONE_TYPES = { sine: "sine", saw: "sawtooth", square: "square" };
-  const TONE_PEAK = { sine: 0.8, saw: 0.5, square: 0.35 };
-
-  const startTone = (ctx, frequency, code) => {
+  // sine = flute: soft unison shimmer with vibrato that fades in like air settling
+  const startSine = (ctx, frequency, code) => {
     const stages = envStages();
-    const peak = TONE_PEAK[state.sound] ?? 0.8;
+    const { a, d, r } = stages;
+    const now = ctx.currentTime;
     const out = makeOutput(ctx, frequency);
-    const env = sustainEnvelope(ctx, stages, peak);
+    const env = sustainEnvelope(ctx, stages, 0.7);
     env.connect(out);
-    const osc = ctx.createOscillator();
-    osc.type = TONE_TYPES[state.sound] ?? "sine";
-    osc.frequency.value = frequency;
-    osc.connect(env);
-    osc.start(ctx.currentTime);
-    voices.set(code, { release: releaseVoice(ctx, env, [osc], stages.r) });
+    const vibrato = ctx.createOscillator();
+    vibrato.type = "sine";
+    vibrato.frequency.value = 5.2;
+    const vibratoDepth = ctx.createGain();
+    vibratoDepth.gain.setValueAtTime(0, now);
+    vibratoDepth.gain.linearRampToValueAtTime(frequency * 0.006, now + a + d * 0.6 + 0.15);
+    vibrato.connect(vibratoDepth);
+    const sources = [-4, 4].map((cents) => {
+      const osc = ctx.createOscillator();
+      osc.type = "sine";
+      osc.frequency.value = frequency * 2 ** (cents / 1200);
+      vibratoDepth.connect(osc.frequency);
+      osc.connect(env);
+      osc.start(now);
+      return osc;
+    });
+    vibrato.start(now);
+    sources.push(vibrato);
+    voices.set(code, { release: releaseVoice(ctx, env, sources, r) });
+  };
+
+  // saw = lead: two detuned saws through a keytracked lowpass that settles into warmth
+  const startSaw = (ctx, frequency, code) => {
+    const stages = envStages();
+    const { a, d, r } = stages;
+    const now = ctx.currentTime;
+    const out = makeOutput(ctx, frequency);
+    const env = sustainEnvelope(ctx, stages, 0.45);
+    const filter = ctx.createBiquadFilter();
+    filter.type = "lowpass";
+    filter.frequency.setValueAtTime(Math.min(frequency * 8, 8000), now);
+    filter.frequency.exponentialRampToValueAtTime(Math.max(frequency * 3, 900), now + a + d);
+    filter.Q.value = 0.6;
+    env.connect(filter).connect(out);
+    const sources = [-7, 7].map((cents) => {
+      const osc = ctx.createOscillator();
+      osc.type = "sawtooth";
+      osc.frequency.value = frequency * 2 ** (cents / 1200);
+      osc.connect(env);
+      osc.start(now);
+      return osc;
+    });
+    voices.set(code, { release: releaseVoice(ctx, env, sources, r) });
+  };
+
+  // square = chip: hollow detuned pair with a sub-octave for weight
+  const startSquare = (ctx, frequency, code) => {
+    const stages = envStages();
+    const { a, d, r } = stages;
+    const now = ctx.currentTime;
+    const out = makeOutput(ctx, frequency);
+    const env = sustainEnvelope(ctx, stages, 0.3);
+    env.connect(out);
+    const sources = [-3, 3].map((cents) => {
+      const osc = ctx.createOscillator();
+      osc.type = "square";
+      osc.frequency.value = frequency * 2 ** (cents / 1200);
+      osc.connect(env);
+      osc.start(now);
+      return osc;
+    });
+    const sub = ctx.createOscillator();
+    sub.type = "square";
+    sub.frequency.value = frequency / 2;
+    const subGain = ctx.createGain();
+    subGain.gain.value = 0.35;
+    sub.connect(subGain).connect(env);
+    sub.start(now);
+    sources.push(sub);
+    voices.set(code, { release: releaseVoice(ctx, env, sources, r) });
   };
 
   const startBell = (ctx, frequency, code) => {
@@ -397,7 +460,9 @@
     else if (state.sound === "ep") startEp(ctx, frequency, code);
     else if (state.sound === "pad") startPad(ctx, frequency, code);
     else if (state.sound === "meow") startMeow(ctx, frequency, code);
-    else startTone(ctx, frequency, code);
+    else if (state.sound === "sine") startSine(ctx, frequency, code);
+    else if (state.sound === "saw") startSaw(ctx, frequency, code);
+    else startSquare(ctx, frequency, code);
     publishLiveNote(midi);
   };
 
