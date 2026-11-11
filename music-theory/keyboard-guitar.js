@@ -66,9 +66,14 @@
   const span = (text, className = "") => Object.assign(document.createElement("span"), { className, textContent: text });
 
   let audioContext = null;
+  let masterOut = null;
   const ensureAudio = () => {
     if (!audioContext) {
       audioContext = new (window.AudioContext || window.webkitAudioContext)({ latencyHint: "interactive" });
+      // one shared bus into destination instead of every voice fanning out on its own
+      masterOut = audioContext.createGain();
+      masterOut.gain.value = 0.2;
+      masterOut.connect(audioContext.destination);
     }
     if (audioContext.state === "suspended") audioContext.resume();
     return audioContext;
@@ -83,6 +88,19 @@
   const frequencyFor = (midi) => 440 * 2 ** ((midi - 69) / 12);
 
   const voices = new Map();
+
+  // voice cap: steal the oldest voice when polyphony gets out of hand so the
+  // audio callback never drowns during strums, latch, and pedal at once
+  const MAX_VOICES = 16;
+  const retireOldestVoice = () => {
+    while (voices.size >= MAX_VOICES) {
+      const [oldestCode, oldest] = voices.entries().next().value;
+      voices.delete(oldestCode);
+      pedalVoices.delete(oldestCode);
+      if (oldest.cancel) oldest.cancel(audioContext.currentTime);
+      else if (oldest.release) oldest.release(audioContext.currentTime);
+    }
+  };
 
   // one-shot voice shape: a→peak, d→sustain floor, hold, then fade over the full release
   const oneShotFloor = (s, peak) => Math.max(0.0002, peak * Math.max(0.02, s));
@@ -102,16 +120,18 @@
 
   const makeOutput = (ctx, frequency) => {
     const out = ctx.createGain();
-    out.gain.value = 0.2;
+    if (!masterOut) {
+      ensureAudio();
+    }
     if (ctx.createStereoPanner && frequency) {
       // subtle keyboard-style spread: low notes left, high notes right
       const midi = 69 + 12 * Math.log2(frequency / 440);
       const pan = ctx.createStereoPanner();
       pan.pan.value = Math.max(-0.4, Math.min(0.4, ((midi - 60) / 24) * 0.4));
-      out.connect(pan).connect(ctx.destination);
+      out.connect(pan).connect(masterOut);
       return out;
     }
-    out.connect(ctx.destination);
+    out.connect(masterOut);
     return out;
   };
 
@@ -448,6 +468,7 @@
 
   const noteOn = (midi, code) => {
     const ctx = ensureAudio();
+    retireOldestVoice();
     const existing = voices.get(code);
     if (existing?.cancel) existing.cancel(ctx.currentTime);
     else if (existing?.release) existing.release(ctx.currentTime);
