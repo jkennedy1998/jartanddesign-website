@@ -115,26 +115,47 @@
     return out;
   };
 
+  // shared short noise buffer for pick-style transients
+  let noiseBuffer = null;
+  const noiseFor = (ctx) => {
+    if (!noiseBuffer) {
+      const length = Math.ceil(ctx.sampleRate * 0.05);
+      noiseBuffer = ctx.createBuffer(1, length, ctx.sampleRate);
+      const data = noiseBuffer.getChannelData(0);
+      for (let i = 0; i < length; i += 1) data[i] = Math.random() * 2 - 1;
+    }
+    return noiseBuffer;
+  };
+
   const startPluck = (ctx, frequency, code) => {
     const now = ctx.currentTime;
     const { a, d, r, s } = envStages();
     const floor = oneShotFloor(s, 1);
     const length = a + d + r;
     const out = makeOutput(ctx, frequency);
+    // string body: lowpass that darkens like a real pick, with a body-resonance bump
     const filter = ctx.createBiquadFilter();
     filter.type = "lowpass";
-    filter.frequency.setValueAtTime(Math.min(frequency * 7, 7000), now);
-    filter.frequency.exponentialRampToValueAtTime(Math.max(frequency * 1.5, 250), now + a + d);
-    filter.connect(out);
+    filter.frequency.setValueAtTime(Math.min(frequency * 9, 9000), now);
+    filter.frequency.exponentialRampToValueAtTime(Math.max(frequency * 1.2, 220), now + a + d);
+    filter.Q.value = 0.7;
+    const body = ctx.createBiquadFilter();
+    body.type = "peaking";
+    body.frequency.value = 220;
+    body.gain.value = 3;
+    body.Q.value = 1.2;
+    filter.connect(body).connect(out);
     const env = ctx.createGain();
     env.gain.setValueAtTime(0.0001, now);
-    env.gain.exponentialRampToValueAtTime(1, now + a);
+    env.gain.exponentialRampToValueAtTime(1, now + Math.max(0.002, a));
     env.gain.exponentialRampToValueAtTime(floor, now + a + d);
     env.gain.exponentialRampToValueAtTime(0.0001, now + length);
     env.connect(filter);
     const osc = ctx.createOscillator();
     osc.type = "sawtooth";
-    osc.frequency.value = frequency;
+    // picked strings start slightly sharp and settle
+    osc.frequency.setValueAtTime(frequency * 1.03, now);
+    osc.frequency.exponentialRampToValueAtTime(frequency, now + 0.03);
     osc.connect(env);
     osc.start(now);
     osc.stop(now + length + 0.05);
@@ -146,7 +167,19 @@
     sub.connect(subGain).connect(filter);
     sub.start(now);
     sub.stop(now + length + 0.05);
-    voices.set(code, { cancel: cancelVoice(ctx, env, [osc, sub]) });
+    // pick transient: a tight noise click, brighter on higher strings
+    const pick = ctx.createBufferSource();
+    pick.buffer = noiseFor(ctx);
+    const pickFilter = ctx.createBiquadFilter();
+    pickFilter.type = "highpass";
+    pickFilter.frequency.value = Math.max(frequency * 3, 1800);
+    const pickEnv = ctx.createGain();
+    pickEnv.gain.setValueAtTime(0.5, now);
+    pickEnv.gain.exponentialRampToValueAtTime(0.0001, now + 0.012);
+    pick.connect(pickFilter).connect(pickEnv).connect(out);
+    pick.start(now);
+    pick.stop(now + 0.03);
+    voices.set(code, { cancel: cancelVoice(ctx, env, [osc, sub, pick]) });
   };
 
   // sustained-voice helpers: shared a/d envelope shape and release for held sounds
