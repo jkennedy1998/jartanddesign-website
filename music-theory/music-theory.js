@@ -25,11 +25,34 @@
   const randomButton = document.querySelector("[data-randomize]");
   if (!rootMount || !scaleMount || !fretboardMount || !keyboardMount || !randomButton) return;
 
+  const AUTO_SCALE_NOTE_CAP = 7;
+
   const state = {
     root: "C",
     scale: "ionian",
     selected: new Set(),
     tuning: [...STANDARD_TUNING],
+  };
+
+  let recencySeq = 0;
+  const recency = new Map();
+  const touchNote = (note) => { recency.set(note, (recencySeq += 1)); };
+  const resetRecency = (notes) => {
+    recency.clear();
+    notes.forEach(touchNote);
+  };
+  const enforceNoteCap = () => {
+    while (state.selected.size > AUTO_SCALE_NOTE_CAP) {
+      let oldestNote = null;
+      let oldestSeq = Infinity;
+      state.selected.forEach((note) => {
+        const seq = recency.has(note) ? recency.get(note) : -1;
+        if (seq < oldestSeq) { oldestSeq = seq; oldestNote = note; }
+      });
+      if (oldestNote === null) break;
+      state.selected.delete(oldestNote);
+      recency.delete(oldestNote);
+    }
   };
 
   const noteIndex = (note) => NOTES.indexOf(note);
@@ -208,6 +231,7 @@
     state.root = nextRoot;
     state.selected = noteSetFor(state.root, intervals);
     state.scale = scaleForIntervals(intervals);
+    resetRecency(state.selected);
     render();
     publishRoot();
   };
@@ -215,6 +239,7 @@
   const setScale = (nextScale) => {
     state.scale = nextScale;
     state.selected = noteSetFor(state.root, scaleIntervals(nextScale));
+    resetRecency(state.selected);
     render();
   };
 
@@ -241,6 +266,7 @@
     state.root = nextRoot;
     state.scale = nextScale;
     state.selected = noteSetFor(state.root, scaleIntervals(state.scale));
+    resetRecency(state.selected);
     render();
     publishRoot();
   });
