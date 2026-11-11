@@ -4,7 +4,8 @@
   const FRET_MARKERS = new Set([3, 5, 7, 9, 12]);
   const MAX_FRETS = 12;
   const TUNING_LIMIT = 24;
-  const SOUND_OPTIONS = ["pluck", "sine", "saw", "square", "bell", "meow"];
+  const SOUND_OPTIONS = ["pluck", "sine", "saw", "square", "bell", "organ", "meow"];
+  const ONE_SHOT_SOUNDS = new Set(["pluck", "bell", "meow"]);
   const ENV_COLS = 32;
   const ENV_ROWS = 9;
   const OCTAVE_BASE_LIMIT = 3;
@@ -20,8 +21,10 @@
   const controlsMount = document.querySelector("[data-key-guitar-controls]");
   const soundMount = document.querySelector("[data-key-guitar-sound]");
   const envMount = document.querySelector("[data-key-guitar-env]");
+  const envStepsMount = document.querySelector("[data-key-guitar-env-steps]");
   const latchMount = document.querySelector("[data-key-guitar-latch]");
   if (!boardMount || !octaveMount || !controlsMount || !soundMount || !envMount || !latchMount) return;
+  const sampleUrl = new URL("samples/meow.ogg", document.currentScript?.src ?? new URL("music-theory/", location.href));
 
   const noteIndex = (note) => NOTES.indexOf(note);
   const noteAt = (note, offset) => NOTES[(noteIndex(note) + offset + NOTES.length) % NOTES.length];
@@ -48,7 +51,7 @@
     };
   };
   const envFormat = (seconds) => (seconds >= 1 ? `${seconds.toFixed(2)}s` : `${Math.round(seconds * 1000)}ms`);
-  const isSustained = () => state.sound === "sine" || state.sound === "saw" || state.sound === "square";
+  const isSustained = () => !ONE_SHOT_SOUNDS.has(state.sound);
   let root = document.documentElement.dataset.musicRoot || "C";
   let scaleNotes = new Set((document.documentElement.dataset.musicScaleNotes || "").split(",").filter(Boolean));
 
@@ -70,16 +73,31 @@
     return audioContext;
   };
   ["pointerdown", "touchstart", "keydown"].forEach((type) => {
-    window.addEventListener(type, ensureAudio, { once: true, capture: true });
+    window.addEventListener(type, () => {
+      ensureAudio();
+      loadMeow(audioContext).catch(() => { /* meow falls back to synth on first miss */ });
+    }, { once: true, capture: true });
   });
 
   const frequencyFor = (midi) => 440 * 2 ** ((midi - 69) / 12);
 
   const voices = new Map();
 
-  // one-shot voice shape: a→peak, d→sustain floor, hold, then fade over the release tail
+  // one-shot voice shape: a→peak, d→sustain floor, hold, then fade over the full release
   const oneShotFloor = (s, peak) => Math.max(0.0002, peak * Math.max(0.02, s));
-  const oneShotTail = (r) => r * 0.6;
+  const cancelVoice = (ctx, env, sources) => {
+    let stopped = false;
+    return (time) => {
+      if (stopped) return;
+      stopped = true;
+      const at = Math.max(time, ctx.currentTime);
+      env.gain.cancelScheduledValues(at);
+      env.gain.setTargetAtTime(0.0001, at, 0.012);
+      sources.forEach((source) => {
+        try { source.stop(at + 0.1); } catch { /* already stopped */ }
+      });
+    };
+  };
 
   const makeOutput = (ctx) => {
     const out = ctx.createGain();
@@ -92,7 +110,6 @@
     const now = ctx.currentTime;
     const { a, d, r, s } = envStages();
     const floor = oneShotFloor(s, 1);
-    const tail = oneShotTail(r);
     const length = a + d + r;
     const out = makeOutput(ctx);
     const filter = ctx.createBiquadFilter();
@@ -104,7 +121,6 @@
     env.gain.setValueAtTime(0.0001, now);
     env.gain.exponentialRampToValueAtTime(1, now + a);
     env.gain.exponentialRampToValueAtTime(floor, now + a + d);
-    env.gain.setValueAtTime(floor, now + a + d + tail);
     env.gain.exponentialRampToValueAtTime(0.0001, now + length);
     env.connect(filter);
     const osc = ctx.createOscillator();
@@ -121,7 +137,7 @@
     sub.connect(subGain).connect(filter);
     sub.start(now);
     sub.stop(now + length + 0.05);
-    voices.set(code, {});
+    voices.set(code, { cancel: cancelVoice(ctx, env, [osc, sub]) });
   };
 
   const TONE_TYPES = { sine: "sine", saw: "sawtooth", square: "square" };
@@ -155,14 +171,12 @@
     const now = ctx.currentTime;
     const { a, d, r, s } = envStages();
     const floor = oneShotFloor(s, 1);
-    const tail = oneShotTail(r);
     const length = a + d + r;
     const out = makeOutput(ctx);
     const env = ctx.createGain();
     env.gain.setValueAtTime(0.0001, now);
     env.gain.exponentialRampToValueAtTime(1, now + a);
     env.gain.exponentialRampToValueAtTime(floor, now + a + d);
-    env.gain.setValueAtTime(floor, now + a + d + tail);
     env.gain.exponentialRampToValueAtTime(0.0001, now + length);
     env.connect(out);
     const partials = [
@@ -170,6 +184,7 @@
       { ratio: 2.41, gain: 0.3 },
       { ratio: 3.9, gain: 0.18 },
     ];
+    const sources = [];
     partials.forEach(({ ratio, gain }) => {
       const partialGain = ctx.createGain();
       partialGain.gain.value = gain;
@@ -180,36 +195,92 @@
       osc.connect(partialGain);
       osc.start(now);
       osc.stop(now + length + 0.05);
+      sources.push(osc);
     });
-    voices.set(code, {});
+    voices.set(code, { cancel: cancelVoice(ctx, env, sources) });
+  };
+
+  const startOrgan = (ctx, frequency, code) => {
+    const now = ctx.currentTime;
+    const { a, d, r, s } = envStages();
+    const peak = 0.4;
+    const out = makeOutput(ctx);
+    const env = ctx.createGain();
+    env.gain.setValueAtTime(0.0001, now);
+    env.gain.exponentialRampToValueAtTime(peak, now + Math.max(0.002, a));
+    env.gain.exponentialRampToValueAtTime(Math.max(0.0002, peak * Math.max(0.02, s)), now + a + d);
+    env.connect(out);
+    const drawbars = [[1, 0.5], [2, 0.35], [3, 0.22], [4, 0.12]];
+    const sources = drawbars.map(([ratio, gain]) => {
+      const partialGain = ctx.createGain();
+      partialGain.gain.value = gain;
+      const osc = ctx.createOscillator();
+      osc.type = "sine";
+      osc.frequency.value = frequency * ratio;
+      osc.connect(partialGain).connect(env);
+      osc.start(now);
+      return osc;
+    });
+    voices.set(code, {
+      release: (time) => {
+        const at = Math.max(time, ctx.currentTime);
+        env.gain.setTargetAtTime(0.0001, at, Math.max(0.02, r / 3));
+        sources.forEach((osc) => osc.stop(at + r + 0.3));
+      },
+    });
+  };
+
+  // sampled meow: sample's voiced body sits near 620 Hz, keyboard pitch maps to playback rate
+  const MEOW_BASE_HZ = 620;
+  let meowAudio = null;
+  const loadMeow = (ctx) => {
+    if (!meowAudio) {
+      meowAudio = fetch(sampleUrl)
+        .then((response) => response.arrayBuffer())
+        .then((buffer) => ctx.decodeAudioData(buffer));
+    }
+    return meowAudio;
   };
 
   const startMeow = (ctx, frequency, code) => {
     const now = ctx.currentTime;
     const { a, d, r, s } = envStages();
     const floor = oneShotFloor(s, 0.9);
-    const tail = oneShotTail(r);
     const length = Math.max(0.25, a + d + r);
     const out = makeOutput(ctx);
-    const formant = ctx.createBiquadFilter();
-    formant.type = "bandpass";
-    formant.frequency.value = frequency * 2.5;
-    formant.Q.value = 6;
     const env = ctx.createGain();
     env.gain.setValueAtTime(0.0001, now);
     env.gain.exponentialRampToValueAtTime(0.9, now + Math.max(0.01, a));
     env.gain.exponentialRampToValueAtTime(floor, now + Math.max(0.01, a) + d);
-    env.gain.setValueAtTime(floor, now + Math.max(0.01, a) + d + tail);
     env.gain.exponentialRampToValueAtTime(0.0001, now + length);
-    const osc = ctx.createOscillator();
-    osc.type = "sawtooth";
-    osc.frequency.setValueAtTime(frequency * 0.85, now);
-    osc.frequency.linearRampToValueAtTime(frequency * 1.3, now + length * 0.35);
-    osc.frequency.linearRampToValueAtTime(frequency * 0.9, now + length);
-    osc.connect(formant).connect(env).connect(out);
-    osc.start(now);
-    osc.stop(now + length + 0.05);
-    voices.set(code, {});
+    env.connect(out);
+    const sources = [];
+    const voice = { cancel: cancelVoice(ctx, env, sources) };
+    voices.set(code, voice);
+    loadMeow(ctx).then((buffer) => {
+      if (voices.get(code) !== voice) return;
+      const sample = ctx.createBufferSource();
+      sample.buffer = buffer;
+      sample.playbackRate.value = Math.min(3.5, Math.max(0.4, frequency / MEOW_BASE_HZ));
+      sample.connect(env);
+      sample.start();
+      sources.push(sample);
+    }).catch(() => {
+      if (voices.get(code) !== voice) return;
+      const formant = ctx.createBiquadFilter();
+      formant.type = "bandpass";
+      formant.frequency.value = frequency * 2.5;
+      formant.Q.value = 6;
+      const osc = ctx.createOscillator();
+      osc.type = "sawtooth";
+      osc.frequency.setValueAtTime(frequency * 0.85, now);
+      osc.frequency.linearRampToValueAtTime(frequency * 1.3, now + length * 0.35);
+      osc.frequency.linearRampToValueAtTime(frequency * 0.9, now + length);
+      osc.connect(formant).connect(env);
+      osc.start(now);
+      osc.stop(now + length + 0.05);
+      sources.push(osc);
+    });
   };
 
   const LIVE_NOTE_EVENT = "music-theory:live-note";
@@ -220,12 +291,14 @@
   const noteOn = (midi, code) => {
     const ctx = ensureAudio();
     const existing = voices.get(code);
-    if (existing?.release) existing.release(ctx.currentTime);
+    if (existing?.cancel) existing.cancel(ctx.currentTime);
+    else if (existing?.release) existing.release(ctx.currentTime);
     voices.delete(code);
     pedalVoices.delete(code);
     const frequency = frequencyFor(midi);
     if (state.sound === "pluck") startPluck(ctx, frequency, code);
     else if (state.sound === "bell") startBell(ctx, frequency, code);
+    else if (state.sound === "organ") startOrgan(ctx, frequency, code);
     else if (state.sound === "meow") startMeow(ctx, frequency, code);
     else startTone(ctx, frequency, code);
     publishLiveNote(midi);
@@ -324,6 +397,7 @@
   };
 
   const renderEnv = () => {
+    renderEnvSteps();
     const h = envHandles();
     const grid = Array.from({ length: ENV_ROWS }, () => Array(ENV_COLS).fill(" "));
     for (let x = 0; x < ENV_COLS; x += 1) {
@@ -349,46 +423,57 @@
     );
   };
 
-  let envDragging = false;
-  let envStage = null;
-  const editEnv = (event) => {
-    const rect = envMount.firstElementChild.getBoundingClientRect();
-    const col = Math.min(ENV_COLS - 1, Math.max(0, Math.floor(((event.clientX - rect.left) / rect.width) * ENV_COLS)));
-    const row = Math.min(ENV_ROWS - 1, Math.max(0, Math.floor(((event.clientY - rect.top) / rect.height) * ENV_ROWS)));
-    if (!envStage) {
-      const h = envHandles();
-      envStage = [[h.xa, "a"], [h.xd, "d"], [h.xs, "s"], [h.xr, "r"]]
-        .sort((p, q) => Math.abs(p[0] - col) - Math.abs(q[0] - col))[0][1];
-    }
-    const env = state.env;
-    const frac = col / (ENV_COLS - 1);
-    if (envStage === "a") {
-      env.pa = Math.min(Math.max(frac, 0.004), 0.98 - env.pd);
-    } else if (envStage === "d") {
-      env.pd = Math.min(Math.max(frac - env.pa, 0.01), 0.98 - env.pa);
-    } else if (envStage === "r") {
-      const { a, d } = envStages();
-      env.pr = Math.min(Math.max(1 - frac, 0.02), 0.98);
-      env.total = (a + d) / Math.max(0.02, 1 - env.pr);
-    } else {
-      env.s = Math.min(Math.max(1 - row / (ENV_ROWS - 1), 0), 1);
-    }
-    renderEnv();
+  const envSteps = () => {
+    const { a, d, r, s } = envStages();
+    return [
+      ["attack", "a", envFormat(a)],
+      ["decay", "d", envFormat(d)],
+      ["sustain", "s", `${Math.round(s * 100)}%`],
+      ["release", "r", envFormat(r)],
+    ];
   };
 
-  envMount.addEventListener("pointerdown", (event) => {
-    envDragging = true;
-    envStage = null;
-    envMount.setPointerCapture(event.pointerId);
-    editEnv(event);
+  const renderEnvSteps = () => {
+    if (!envStepsMount) return;
+    const fragment = document.createDocumentFragment();
+    envSteps().forEach(([label, stage, value]) => {
+      const cell = document.createElement("div");
+      cell.className = "music-selector";
+      const step = (direction) => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "music-selector-step";
+        button.dataset.kgEnvStage = stage;
+        button.dataset.kgStep = String(direction);
+        button.textContent = direction < 0 ? "‹" : "›";
+        button.setAttribute("aria-label", `${direction < 0 ? "shorter" : "longer"} ${label}`);
+        return button;
+      };
+      cell.replaceChildren(
+        span(`${label} :`, "music-selector-label"),
+        step(-1),
+        span(value, "music-selector-value"),
+        step(1),
+      );
+      fragment.append(cell);
+    });
+    envStepsMount.replaceChildren(fragment);
+  };
+
+  const stepEnv = (stage, direction) => {
+    const env = state.env;
+    if (stage === "a") env.pa = Math.min(Math.max(env.pa + 0.02 * direction, 0.004), 0.98 - env.pd);
+    else if (stage === "d") env.pd = Math.min(Math.max(env.pd + 0.02 * direction, 0.01), 0.98 - env.pa);
+    else if (stage === "r") env.pr = Math.min(Math.max(env.pr + 0.02 * direction, 0.02), 0.98);
+    else env.s = Math.min(Math.max(env.s + 0.05 * direction, 0), 1);
+  };
+
+  envStepsMount?.addEventListener("click", (event) => {
+    const step = event.target.closest("[data-kg-env-stage]");
+    if (!step) return;
+    stepEnv(step.dataset.kgEnvStage, Number(step.dataset.kgStep));
+    renderEnv();
   });
-  envMount.addEventListener("pointermove", (event) => {
-    if (envDragging) editEnv(event);
-  });
-  ["pointerup", "pointercancel"].forEach((type) => envMount.addEventListener(type, () => {
-    envDragging = false;
-    envStage = null;
-  }));
 
   const setLatch = (value) => {
     state.latch = value;
